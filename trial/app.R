@@ -10,42 +10,17 @@
 library(shiny)
 
 # Define UI for application that draws a histogram
-ui <- navbarPage(
-    "Application",
-    tabPanel("General",
-             sidebarLayout(
-                 
-                 sidebarPanel(
-                     uiOutput("tex2"),
-                     br(),
-                     uiOutput("select")
-                     
-                     
-                 ),
-                 
-                 mainPanel(
-                     
-                     
-                 )
-             )))
+library(shiny)
+ui <- fluidPage(
+    numericInput("num", "Maximum slider value", 5),
+    uiOutput("slider")
+)
 
-
-server <- function(input, output,session) {
-    
-    output$tex2<-renderUI({
-        numericInput("text2","#tests",
-                     value = 1,
-                     min=1
-        )
+server <- function(input, output) {
+    output$slider <- renderUI({
+        sliderInput("slider", "Slider", min = 0,
+                    max = input$num, value = 0)
     })
-    output$select<-renderUI({
-        selectInput(
-            inputId = "sel", 
-            label = "Select Test",
-            selected = input$text2,
-            choices = rep(paste0("Test", 1:input$text2))
-        )
-    })
-    
 }
+
 shinyApp(ui = ui, server = server)
