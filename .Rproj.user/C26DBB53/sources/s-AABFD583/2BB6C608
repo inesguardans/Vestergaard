@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1585823275366.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "2BB6C608",
+    "lastKnownWriteTime" : 2466321603649696627,
+    "last_content_update" : 1585823275366,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "C9C40E01",
+        "caption" : "b_plan",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=b_plan&cache_key=C9C40E01",
+        "displayedObservations" : "24",
+        "environment" : "",
+        "expression" : "b_plan",
+        "object" : "b_plan",
+        "preview" : "0",
+        "totalObservations" : "24",
+        "variables" : "3"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
