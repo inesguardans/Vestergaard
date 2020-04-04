@@ -2,18 +2,36 @@ library(shiny)
 library(readxl)
 library(shinythemes)
 library(dplyr)
+library(scales)
 
-b_plan <- read_xlsx("B_plan_data.xlsx")
+
+b_plan<- read_excel("B_plan_data.xlsx")%>%
+    mutate(Amount = round(Amount, 0)
+           )%>%
+    as.data.frame()
+rownames(b_plan) <- b_plan$Variable
+b_plan[1] <- NULL
+
 CEO_price <- 2.58
+procurement_price <- 2.74
+distribution_price <- 3.98
+
 PMI_distrib <- 0.29
 lost_vect <- 0.123
 usage_vect <- 0.4308
 insecticide_eff_vect <- 0.0291
 wear_tear_vect <- 0.0276
 
+css <- "
+#Bplan {
+background: linen;
+width: 500px;
+}"
 
 # Define UI for dataset viewer app ----
 ui <- fluidPage(
+  
+  tags$style(css),
     theme = shinythemes::shinytheme("flatly"),
 
     
@@ -71,7 +89,9 @@ ui <- fluidPage(
             uiOutput("other_wear_tear"),
             
             #-------------------------------------------
-            numericInput("improvement", "Loss reduction by %:", 10),
+            numericInput("loss_reduction", "Loss reduction by %:", 20),
+            
+            numericInput("improvement", "Improvement by %:", 10),
             
             # Include clarifying text ----
             helpText("Note: Please specify the parameters you wish to display"),
@@ -82,8 +102,12 @@ ui <- fluidPage(
         
         # Main panel for displaying outputs ----
         mainPanel(
+       
             tabsetPanel(
                 tabPanel("Tab 1",
+                         h4("Chosen values"),
+                         verbatimTextOutput("summary"),
+                         
                          h4("Data"),
                          tableOutput("Bplan")
                          ),
@@ -92,7 +116,7 @@ ui <- fluidPage(
                 )
             
                 
-        
+          
     
            
         )
@@ -107,7 +131,7 @@ server <- function(input, output) {
    
         output$other_distrib <- renderUI({
             if(input$distrib == "Other"){
-            numericInput("dist_other", "If other, please specify:", 0)
+            numericInput("dist_other", "If other, please specify %:", 0)
             }
             else{
                 return(NULL)
@@ -118,7 +142,7 @@ server <- function(input, output) {
         
         output$other_lost <- renderUI({
             if(input$LLIN_lost == "Other"){
-                numericInput("lost_other", "If other, please specify:", 0)
+                numericInput("lost_other", "If other, please specify %:", 0)
             }
             else{
                 return(NULL)
@@ -127,7 +151,7 @@ server <- function(input, output) {
         
         output$other_not_used <- renderUI({
             if(input$not_used == "Other"){
-                numericInput("not_used_other", "If other, please specify:", 0)
+                numericInput("not_used_other", "If other, please specify %:", 0)
             }
             else{
                 return(NULL)
@@ -136,7 +160,7 @@ server <- function(input, output) {
         
         output$other_insecticide <- renderUI({
             if(input$insecticide_efficacy == "Other"){
-                numericInput("insecticide_other", "If other, please specify:", 0)
+                numericInput("insecticide_other", "If other, please specify %:", 0)
             }
             else{
                 return(NULL)
@@ -145,7 +169,7 @@ server <- function(input, output) {
         
         output$other_wear_tear <- renderUI({
             if(input$wear_tear == "Other"){
-                numericInput("wear_tear_other", "If other, please specify:", 0)
+                numericInput("wear_tear_other", "If other, please specify %:", 0)
             }
             else{
                 return(NULL)
@@ -157,82 +181,183 @@ server <- function(input, output) {
     
     # Return the requested dataset ----
         
-        if(input$distrib != "Other"){
-            distribInput <- reactive({
+       
+        
+        distribInput <- reactive({
+            if(input$distrib != "Other"){
                 switch(input$distrib,
                        "PMI" = PMI_distrib,
                        "GF" = GF,
                        "AMF" = AMF)
-            })
-        }
-        else{
-            distribInput <- input$dist_other
-        }
+                
+            }
+            else{
+                as.numeric(input$dist_other/100) 
+            }
+        })
         #-----------------------------------
         
         priceInput <- reactive({
             switch(input$price,
                    "CEO" = CEO_price,
-                   "MOP procurement" = MOP_price,
-                   "MOP procurement and distrib." = MOP_proc_dist_price)
+                   "MOP procurement" = procurement_price,
+                   "MOP procurement and distrib." = distribution_price)
         })
         
         #---------------------------------
-        if(input$LLIN_lost != "Other"){
-            lostInput <- lost_vect
-        }
-        else{
-            lostInput <- input$lost_other
-        }
+        
+        lostInput <- reactive({
+            if(input$LLIN_lost != "Other"){
+                lostInput <- lost_vect
+            }
+            else{
+                lostInput <- as.numeric(input$lost_other/100)
+            }
+        })
+        
         #---------------------------------
         
-        if(input$not_used != "Other"){
-            useInput <- usage_vect
-        }
-        else{
-            useInput <- input$not_used_other
-        }
+        useInput <- reactive({
+            if(input$not_used != "Other"){
+                useInput <- usage_vect
+            }
+            else{
+                useInput <- as.numeric(input$not_used_other/100)
+            }
+        })
+       
         #---------------------------------
+        insecticide_effInput <- reactive({
+            if(input$insecticide_efficacy != "Other"){
+                insecticide_effInput <- insecticide_eff_vect
+            }
+            else{
+                insecticide_effInput <- as.numeric(input$insecticide_other/100)
+            }
+        })
         
-        if(input$insecticide_efficacy != "Other"){
-            insecticide_effInput <- insecticide_eff_vect
-        }
-        else{
-            insecticide_effInput <- input$insecticide_other
-        }
         #---------------------------------
+        wear_tearInput <- reactive({
+            if(input$wear_tear != "Other"){
+                wear_tearInput <- wear_tear_vect
+            }
+            else{
+                wear_tearInput <- as.numeric(input$wear_tear_other/100)
+            }
+        })
         
-        if(input$wear_tear != "Other"){
-            wear_tearInput <- wear_tear_vect
-        }
-        else{
-            wear_tearInput <- input$wear_tear_other
-        }
         #-------------------------------
         
-        improvement <- input$improvement
 
+    output$summary <- renderPrint({
+       choice <- c(distribInput(), priceInput(), lostInput(), useInput(),
+          insecticide_effInput(), wear_tearInput(), "", "")
+       labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
+                   input$insecticide_efficacy,
+                   input$wear_tear, input$loss_reduction, input$improvement)
        
+       names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
+                  "Insecticide efficacy", "Attrition wear & tear", "Loss reduction %", "Improvement %")
+       
+       summary <- matrix(labels, nrow = 1, ncol = 8)
+       summary <- rbind(summary, choice)
+       
+       colnames(summary) <- names
+       rownames(summary) <- c("", "")
+       
+       summary
+
+    })
+        #-----------------------------------
+        data <- reactive({
+            
+            b_plan[7,1] <- distribInput()
+            b_plan[2,2] <- priceInput()
+            b_plan[9,1] <- lostInput()
+            b_plan[10,1] <- useInput()
+            b_plan[11,1] <- insecticide_effInput()
+            b_plan[12,1] <- wear_tearInput()
+            b_plan[20,1] <- round(input$loss_reduction/100,2)
+            b_plan[21,1] <- round(input$loss_reduction/100,2)
+            b_plan[22,1] <- round(input$improvement/100, 2)
+            
+            
+            b_plan[3,2] <- round(b_plan[2,2]*b_plan[1,2], 0)
+            
+            b_plan[6,2] <- round(b_plan[5,1]*b_plan[4,2],0)
+            
+            b_plan[7,2] <- round((b_plan[3,2]/0.71)*b_plan[7,1],0)
+            
+            b_plan[8,2] <- round(b_plan[3,2]+b_plan[7,2],0)
+            
+            b_plan[9,2] <- round(b_plan[9,1]*b_plan[8,2],0)
+            
+            b_plan[10,2] <- round(b_plan[10,1]*b_plan[9,2],0)
+            
+            b_plan[11,2] <- round(b_plan[11,1]*b_plan[9,2],0)
+            
+            b_plan[12,2] <- round(b_plan[12,1]*b_plan[9,2],0)
+            
+            b_plan[13,2] <- round(b_plan[16,1]*b_plan[1,2],0)
+            
+            b_plan[14,2] <- round(b_plan[1,2]-b_plan[13,2],0)
+            
+            b_plan[15,2] <- round(b_plan[15,1]*b_plan[9,2],0)
+            
+            b_plan[15,1] <- round(b_plan[11,1]+b_plan[12,1],2)
+            
+            b_plan[16,1] <- round(b_plan[9,1] + b_plan[10,1]+b_plan[15,1],2)
+            
+            b_plan[16,2] <- round(b_plan[16,1]*b_plan[9,2],0)
+            
+            b_plan[17,2] <- round(b_plan[1,2]*(1-b_plan[9,1])*(1-b_plan[10,1])*
+                                    (1-b_plan[11,1])*(1-b_plan[12,1]),0)
+            
+            b_plan[17,1] <- round(b_plan[17,2]/b_plan[1,2],2)
+
+            b_plan[18,1] <- b_plan[17,1]
+
+            b_plan[18,2] <- round(b_plan[17,1]*b_plan[8,2],0)
+
+            b_plan[19,2] <- round(b_plan[8,2] - b_plan[18,2],0)
+
+            b_plan[19,1] <- round(b_plan[19,2]/b_plan[8,2],2)
+
+            b_plan[20,2] <- round(b_plan[1,2]*(1-((1-b_plan[20,1])*b_plan[9,1]))*
+                                    (1-b_plan[10,1])*(1-b_plan[15,1]),0)
+
+            b_plan[21,2] <- round(b_plan[1,2]*(1-b_plan[9,1])*
+                                    (1-(1-b_plan[21,1])*b_plan[10,1])*(1-b_plan[15,1]),0)
+
+            b_plan[22,2] <- round(b_plan[1,2]*(1-b_plan[9,1])*
+                                    (1-b_plan[10,1])*(1-0.9*b_plan[15,1]),0)
+
+            b_plan$Amount <- sapply(b_plan$Amount, FUN=function(x) prettyNum(x, big.mark=","))
+            
+            b_plan[c(3:4,6:13,15,16,18),2] <- paste("$", b_plan[c(3:4,6:13,15,16,18),2])
+            
+            b_plan
+        })
         
-       
-
-    
+        
+        
 
     # Filter data based on selections
-    output$Bplan <- renderTable(b_plan)
-        #DT::renderDataTable(DT::datatable({
-     
-        # if (input$man != "All") {
-        #     data <- data[data$manufacturer == input$man,]
-        # }
-        # if (input$cyl != "All") {
-        #     data <- data[data$cyl == input$cyl,]
-        # }
-        # if (input$trans != "All") {
-        #     data <- data[data$trans == input$trans,]
-        # }
-        #data
-    #}))
+      
+    output$Bplan <- 
+      
+        renderTable({
+          df <- data()
+
+          if(!is.na(df$Percentage)){
+            df$Percentage <- sprintf("%.2f", df$Percentage)
+          }
+          
+          
+          return(df)}, na = " ", include.rownames = TRUE,
+           bordered = TRUE
+                    )
+
     
 }
 
