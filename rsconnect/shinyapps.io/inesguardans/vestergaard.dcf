@@ -1,0 +1,13 @@
+name: vestergaard
+title:
+username:
+account: inesguardans
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2056680
+bundleId: 2968527
+url: https://inesguardans.shinyapps.io/vestergaard/
+when: 1586011921.10166
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|~$B_plan_data.xlsx|B_Plan_1.xlsx|examples.R|global.R

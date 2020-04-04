@@ -3,6 +3,7 @@ library(readxl)
 library(shinythemes)
 library(dplyr)
 library(scales)
+library(DT)
 
 
 b_plan<- read_excel("B_plan_data.xlsx")%>%
@@ -329,6 +330,8 @@ server <- function(input, output) {
 
             b_plan[22,3] <- round(b_plan[1,3]*(1-b_plan[9,2])*
                                     (1-b_plan[10,2])*(1-0.9*b_plan[15,2]),0)
+            
+            b_plan[23,3] <- round(b_plan[20,3]+b_plan[21,3]+ b_plan[22,3], 0)
 
             b_plan$Amount <- sapply(b_plan$Amount, FUN=function(x) prettyNum(x, big.mark=","))
             
