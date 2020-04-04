@@ -31,3 +31,17 @@ dollar(c(100, 0.23, 1.456565, 2e3))
 dollar(c(1:10 * 10))
 
 b_plan[c(3:13,15,16,18),3] <- dollar(b_plan[c(3:13,15,16,18),3])
+
+color1 <-  rep("'palegreen3,'", 8)
+color2 <- rep("'skyblue3'", 8)
+color3 <- paste(rep("'linen'", 7), collapse=",")
+colors <- c(color1, color2, color3)    
+
+library(DT)
+library(formattable)
+
+iris_new <- formattable(iris, list(
+  Sepal.Width = color_tile("red", "green")
+))
+
+as.datatable(iris_new)

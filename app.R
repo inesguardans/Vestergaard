@@ -9,8 +9,8 @@ b_plan<- read_excel("B_plan_data.xlsx")%>%
     mutate(Amount = round(Amount, 0)
            )%>%
     as.data.frame()
-rownames(b_plan) <- b_plan$Variable
-b_plan[1] <- NULL
+# rownames(b_plan) <- b_plan$Variable
+# b_plan[1] <- NULL
 
 CEO_price <- 2.58
 procurement_price <- 2.74
@@ -25,16 +25,12 @@ usage_vect <- 0.4308
 insecticide_eff_vect <- 0.0291
 wear_tear_vect <- 0.0276
 
-css <- "
-#Bplan {
-background: linen;
-width: 500px;
-}"
+
 
 # Define UI for dataset viewer app ----
 ui <- fluidPage(
   
-  tags$style(css),
+
     theme = shinythemes::shinytheme("flatly"),
 
     
@@ -112,7 +108,7 @@ ui <- fluidPage(
                          verbatimTextOutput("summary"),
                          
                          h4("Data"),
-                         tableOutput("Bplan")
+                         DT::dataTableOutput("Bplan")
                          ),
                 
                 tabPanel("Tab 2", h4("Graphs"))
@@ -273,70 +269,70 @@ server <- function(input, output) {
         #-----------------------------------
         data <- reactive({
             
-            b_plan[7,1] <- distribInput()
-            b_plan[2,2] <- priceInput()
-            b_plan[9,1] <- lostInput()
-            b_plan[10,1] <- useInput()
-            b_plan[11,1] <- insecticide_effInput()
-            b_plan[12,1] <- wear_tearInput()
-            b_plan[20,1] <- round(input$loss_reduction/100,2)
-            b_plan[21,1] <- round(input$loss_reduction/100,2)
-            b_plan[22,1] <- round(input$improvement/100, 2)
+            b_plan[7,2] <- distribInput()
+            b_plan[2,3] <- priceInput()
+            b_plan[9,2] <- lostInput()
+            b_plan[10,2] <- useInput()
+            b_plan[11,2] <- insecticide_effInput()
+            b_plan[12,2] <- wear_tearInput()
+            b_plan[20,2] <- round(input$loss_reduction/100,2)
+            b_plan[21,2] <- round(input$loss_reduction/100,2)
+            b_plan[22,2] <- round(input$improvement/100, 2)
             
             
-            b_plan[3,2] <- round(b_plan[2,2]*b_plan[1,2], 0)
+            b_plan[3,3] <- round(b_plan[2,3]*b_plan[1,3], 0)
             
-            b_plan[6,2] <- round(b_plan[5,1]*b_plan[4,2],0)
+            b_plan[6,3] <- round(b_plan[5,2]*b_plan[4,3],0)
             
-            b_plan[7,2] <- round((b_plan[3,2]/0.71)*b_plan[7,1],0)
+            b_plan[7,3] <- round((b_plan[3,3]/0.71)*b_plan[7,2],0)
             
-            b_plan[8,2] <- round(b_plan[3,2]+b_plan[7,2],0)
+            b_plan[8,3] <- round(b_plan[3,3]+b_plan[7,3],0)
             
-            b_plan[9,2] <- round(b_plan[9,1]*b_plan[8,2],0)
+            b_plan[9,3] <- round(b_plan[9,2]*b_plan[8,3],0)
             
-            b_plan[10,2] <- round(b_plan[10,1]*b_plan[9,2],0)
+            b_plan[10,3] <- round(b_plan[10,2]*b_plan[9,3],0)
             
-            b_plan[11,2] <- round(b_plan[11,1]*b_plan[9,2],0)
+            b_plan[11,3] <- round(b_plan[11,2]*b_plan[9,3],0)
             
-            b_plan[12,2] <- round(b_plan[12,1]*b_plan[9,2],0)
+            b_plan[12,3] <- round(b_plan[12,2]*b_plan[9,3],0)
             
-            b_plan[13,2] <- round(b_plan[16,1]*b_plan[1,2],0)
+            b_plan[13,3] <- round(b_plan[16,2]*b_plan[1,3],0)
             
-            b_plan[14,2] <- round(b_plan[1,2]-b_plan[13,2],0)
+            b_plan[14,3] <- round(b_plan[1,3]-b_plan[13,3],0)
             
-            b_plan[15,2] <- round(b_plan[15,1]*b_plan[9,2],0)
+            b_plan[15,3] <- round(b_plan[15,2]*b_plan[9,3],0)
             
-            b_plan[15,1] <- round(b_plan[11,1]+b_plan[12,1],2)
+            b_plan[15,2] <- round(b_plan[11,2]+b_plan[12,2],2)
             
-            b_plan[16,1] <- round(b_plan[9,1] + b_plan[10,1]+b_plan[15,1],2)
+            b_plan[16,2] <- round(b_plan[9,2] + b_plan[10,2]+b_plan[15,2],2)
             
-            b_plan[16,2] <- round(b_plan[16,1]*b_plan[9,2],0)
+            b_plan[16,3] <- round(b_plan[16,2]*b_plan[9,3],0)
             
-            b_plan[17,2] <- round(b_plan[1,2]*(1-b_plan[9,1])*(1-b_plan[10,1])*
-                                    (1-b_plan[11,1])*(1-b_plan[12,1]),0)
+            b_plan[17,3] <- round(b_plan[1,3]*(1-b_plan[9,2])*(1-b_plan[10,2])*
+                                    (1-b_plan[11,2])*(1-b_plan[12,2]),0)
             
-            b_plan[17,1] <- round(b_plan[17,2]/b_plan[1,2],2)
+            b_plan[17,2] <- round(b_plan[17,3]/b_plan[1,3],2)
 
-            b_plan[18,1] <- b_plan[17,1]
+            b_plan[18,2] <- b_plan[17,2]
 
-            b_plan[18,2] <- round(b_plan[17,1]*b_plan[8,2],0)
+            b_plan[18,3] <- round(b_plan[17,2]*b_plan[8,3],0)
 
-            b_plan[19,2] <- round(b_plan[8,2] - b_plan[18,2],0)
+            b_plan[19,3] <- round(b_plan[8,3] - b_plan[18,3],0)
 
-            b_plan[19,1] <- round(b_plan[19,2]/b_plan[8,2],2)
+            b_plan[19,2] <- round(b_plan[19,3]/b_plan[8,3],2)
 
-            b_plan[20,2] <- round(b_plan[1,2]*(1-((1-b_plan[20,1])*b_plan[9,1]))*
-                                    (1-b_plan[10,1])*(1-b_plan[15,1]),0)
+            b_plan[20,3] <- round(b_plan[1,3]*(1-((1-b_plan[20,2])*b_plan[9,2]))*
+                                    (1-b_plan[10,2])*(1-b_plan[15,2]),0)
 
-            b_plan[21,2] <- round(b_plan[1,2]*(1-b_plan[9,1])*
-                                    (1-(1-b_plan[21,1])*b_plan[10,1])*(1-b_plan[15,1]),0)
+            b_plan[21,3] <- round(b_plan[1,3]*(1-b_plan[9,2])*
+                                    (1-(1-b_plan[21,2])*b_plan[10,2])*(1-b_plan[15,2]),0)
 
-            b_plan[22,2] <- round(b_plan[1,2]*(1-b_plan[9,1])*
-                                    (1-b_plan[10,1])*(1-0.9*b_plan[15,1]),0)
+            b_plan[22,3] <- round(b_plan[1,3]*(1-b_plan[9,2])*
+                                    (1-b_plan[10,2])*(1-0.9*b_plan[15,2]),0)
 
             b_plan$Amount <- sapply(b_plan$Amount, FUN=function(x) prettyNum(x, big.mark=","))
             
-            b_plan[c(3:4,6:13,15,16,18),2] <- paste("$", b_plan[c(3:4,6:13,15,16,18),2])
+            b_plan[c(3:4,6:13,15,16,18),3] <- paste("$", b_plan[c(3:4,6:13,15,16,18),3])
             
             b_plan
         })
@@ -348,17 +344,39 @@ server <- function(input, output) {
       
     output$Bplan <- 
       
-        renderTable({
-          df <- data()
+      DT::renderDataTable({
+        df <- data()
+        
+        if(!is.na(df$Percentage)){
+              df$Percentage <- sprintf("%.2f", df$Percentage)
+        }
+        
+        colors <-  c(rep("'palegreen3,'", 8),
+                     rep("'skyblue3,'", 8),
+                     rep("'linen,'", 6),
+                     "linen")
 
-          if(!is.na(df$Percentage)){
-            df$Percentage <- sprintf("%.2f", df$Percentage)
-          }
-          
-          
-          return(df)}, na = " ", include.rownames = TRUE,
-           bordered = TRUE
-                    )
+         datatable(df, 
+                  rownames = FALSE,
+                  options = list(
+                    #autoWidth = TRUE,
+                    columnDefs = list(list(width = "100px", targets = 2)),
+                    pageLength = 23, info = FALSE, lengthMenu = 30,
+                    searching = FALSE,
+                    lengthChange = FALSE
+                  ))%>%
+           formatStyle("Variable", target="row",
+                   backgroundColor =  styleEqual(c(df$Variable[1:8], df$Variable[9:16], df$Variable[17:23]), 
+                            c(c("lightgreen", "lightgreen", "lightgreen", "lightgreen"
+                                , "lightgreen", "lightgreen", "lightgreen", "lightgreen"), 
+                              c("lightblue","lightblue","lightblue","lightblue",
+                                "lightblue","lightblue","lightblue","lightblue"),
+                              c("orange", "orange","orange","orange","orange","orange","orange"))),
+                   fontWeight = styleEqual(c(df$Variable[8], df$Variable[16],df$Variable[23]), c("bold", "bold", "bold")))
+        }
+        
+        
+      )
 
     
 }
