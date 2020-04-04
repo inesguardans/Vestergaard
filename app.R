@@ -17,6 +17,9 @@ procurement_price <- 2.74
 distribution_price <- 3.98
 
 PMI_distrib <- 0.29
+GF <- 0.35
+AMF <- 0.4
+
 lost_vect <- 0.123
 usage_vect <- 0.4308
 insecticide_eff_vect <- 0.0291
@@ -201,11 +204,10 @@ server <- function(input, output) {
             switch(input$price,
                    "CEO" = CEO_price,
                    "MOP procurement" = procurement_price,
-                   "MOP procurement and distrib." = distribution_price)
+                   "MOP procurement and distribution" = distribution_price)
         })
         
         #---------------------------------
-        
         lostInput <- reactive({
             if(input$LLIN_lost != "Other"){
                 lostInput <- lost_vect
