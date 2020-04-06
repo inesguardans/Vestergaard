@@ -365,6 +365,7 @@ server <- function(input, output) {
                     #autoWidth = TRUE,
                     columnDefs = list(list(width = "100px", targets = 2)),
                     pageLength = 23, info = FALSE, lengthMenu = 30,
+                    paging = FALSE,
                     searching = FALSE,
                     lengthChange = FALSE
                   ))%>%
