@@ -418,10 +418,11 @@ server <- function(input, output) {
       DT::renderDataTable({
         df <- data()
     
-         datatable(df,
+         datatable(df, 
                   rownames = FALSE,
                   options = list(
                     autoWidth = TRUE,
+                    
                     columnDefs = list(list(width = "250px", targets = c(0,1,2)), list(className = "dt-center", targets = c(1,2))),
                     pageLength = 23, info = FALSE, lengthMenu = 30,
                     paging = FALSE,
@@ -441,7 +442,7 @@ server <- function(input, output) {
                        
                        fontWeight = styleEqual(c(df$Amount[8], df$Amount[16]), c("bold", "bold"))
                        ,
-                       border = styleEqual(c(df$Amount[8], df$Amount[16]), c("2px solid red", "2px solid red"))) #this is not working
+                       border = styleEqual(c(df$Amount[8], df$Amount[16]), c("2px solid red", "2px solid red"))) #this is not working because the target is "row". But it want it to be "row"
          
            
         
