@@ -4,6 +4,8 @@ library(shinythemes)
 library(dplyr)
 library(scales)
 library(DT)
+library(htmlwidgets)
+library(htmltools)
 
 
 b_plan<- read_excel("B_plan_data.xlsx")%>%
@@ -91,7 +93,15 @@ ui <- fluidPage(
             #-------------------------------------------
             numericInput("loss_reduction", "Loss reduction by %:", 20),
             
-            numericInput("improvement", "Improvement by %:", 10),
+            numericInput("usage_improvement", "Usage improvement by %:", 20),
+            
+            numericInput("bioefficacy_improvement", "Bioefficacy improvement by %:", 5),
+            
+            numericInput("wear_tear_improvement", "Wear and tear attrition improvement by %:", 5),
+            
+            numericInput("effectiveness_improvement", "Effectiveness improvement by %:", 10),
+            
+            numericInput("coverage_improvement", "Regional coverage improvement by %:", 5),
             
             # Include clarifying text ----
             helpText("Note: Please specify the parameters you wish to display"),
@@ -253,12 +263,15 @@ server <- function(input, output) {
           insecticide_effInput(), wear_tearInput(), "", "")
        labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
                    input$insecticide_efficacy,
-                   input$wear_tear, input$loss_reduction, input$improvement)
+                   input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
+                   input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement
+                    )
        
        names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
-                  "Insecticide efficacy", "Attrition wear & tear", "Loss reduction %", "Improvement %")
+                  "Insecticide efficacy", "Attrition wear & tear", "Loss reduction %", "Usage improvement %",
+                  "Bioefficacy improvement %", "Effectiveness improvement %", "Regional coverage improvement %")
        
-       summary <- matrix(labels, nrow = 1, ncol = 8)
+       summary <- matrix(labels, nrow = 1, ncol = 11)
        summary <- rbind(summary, choice)
        
        colnames(summary) <- names
@@ -277,8 +290,11 @@ server <- function(input, output) {
             b_plan[11,2] <- insecticide_effInput()
             b_plan[12,2] <- wear_tearInput()
             b_plan[20,2] <- round(input$loss_reduction/100,2)
-            b_plan[21,2] <- round(input$loss_reduction/100,2)
-            b_plan[22,2] <- round(input$improvement/100, 2)
+            b_plan[23,2] <- round(input$usage_improvement/100,2)
+            b_plan[26,2] <- round(input$bioefficacy_improvement/100,2)
+            b_plan[29,2] <- round(input$wear_tear_improvement/100,2)
+            b_plan[32,2] <- round(input$effectiveness_improvement/100,2)
+            b_plan[35,2] <- round(input$coverage_improvement/100, 2)
             
             
             b_plan[3,3] <- round(b_plan[2,3]*b_plan[1,3], 0)
@@ -301,37 +317,89 @@ server <- function(input, output) {
             
             b_plan[14,3] <- round(b_plan[1,3]-b_plan[13,3],0)
             
-            b_plan[15,3] <- round(b_plan[15,2]*b_plan[9,3],0)
+            b_plan[15,3] <- round(b_plan[15,2]*b_plan[8,3],0)
             
-            b_plan[15,2] <- round(b_plan[11,2]+b_plan[12,2],2)
+            b_plan[15,2] <- round(b_plan[11,2]+b_plan[12,2],4)
             
-            b_plan[16,2] <- round(b_plan[9,2] + b_plan[10,2]+b_plan[15,2],2)
+            b_plan[16,2] <- round(b_plan[9,2] + b_plan[10,2]+b_plan[15,2],4)
             
-            b_plan[16,3] <- round(b_plan[16,2]*b_plan[9,3],0)
+            b_plan[16,3] <- round(b_plan[16,2]*b_plan[8,3],0)
             
-            b_plan[17,3] <- round(b_plan[1,3]*(1-b_plan[9,2])*(1-b_plan[10,2])*
-                                    (1-b_plan[11,2])*(1-b_plan[12,2]),0)
-            
-            b_plan[17,2] <- round(b_plan[17,3]/b_plan[1,3],2)
+            b_plan[17,3] <- round((1-b_plan[16,2])*b_plan[1,3],0)
 
-            b_plan[18,2] <- b_plan[17,2]
+            b_plan[18,2] <- round(b_plan[17,3]/b_plan[1,3],4)
 
-            b_plan[18,3] <- round(b_plan[17,2]*b_plan[8,3],0)
-
+            b_plan[18,3] <- round(b_plan[18,2]*b_plan[8,3],0)
+            
             b_plan[19,3] <- round(b_plan[8,3] - b_plan[18,3],0)
-
-            b_plan[19,2] <- round(b_plan[19,3]/b_plan[8,3],2)
-
-            b_plan[20,3] <- round(b_plan[1,3]*(1-((1-b_plan[20,2])*b_plan[9,2]))*
-                                    (1-b_plan[10,2])*(1-b_plan[15,2]),0)
-
-            b_plan[21,3] <- round(b_plan[1,3]*(1-b_plan[9,2])*
-                                    (1-(1-b_plan[21,2])*b_plan[10,2])*(1-b_plan[15,2]),0)
-
-            b_plan[22,3] <- round(b_plan[1,3]*(1-b_plan[9,2])*
-                                    (1-b_plan[10,2])*(1-0.9*b_plan[15,2]),0)
             
-            b_plan[23,3] <- round(b_plan[20,3]+b_plan[21,3]+ b_plan[22,3], 0)
+            b_plan[19,2] <- round(b_plan[19,3]/b_plan[8,3],4)
+            
+            #Loss ----------------------------------------------------------------------
+            b_plan[20,3] <- round(b_plan[1,3]*(1-((1-b_plan[20,2])*b_plan[9,2]+
+                                                 b_plan[10,2]+b_plan[11,2]+b_plan[12,2])),0)
+            
+            b_plan[21,2] <- round(b_plan[20,3]/b_plan[1,3], 4)
+            
+            b_plan[21,3] <- round(b_plan[21,2]*b_plan[8,3],0)
+            
+            b_plan[22,2] <- round(1-b_plan[21,2], 4)
+            
+            b_plan[22,3] <- round(b_plan[8,3]-b_plan[21,3])
+
+            #Usage  ------------------------------------------------------------------------
+            b_plan[23,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    (1-b_plan[23,2])*b_plan[10,2]+b_plan[11,2]+b_plan[12,2])),0)
+            
+            b_plan[24,2] <- round(b_plan[23,3]/b_plan[1,3], 4)
+            
+            b_plan[24,3] <- round(b_plan[24,2]*b_plan[8,3],0)
+            
+            b_plan[25,2] <- round(1-b_plan[24,2], 4)
+            
+            b_plan[25,3] <- round(b_plan[8,3]-b_plan[24,3],0)
+            
+            #Bioefficacy -----------------------------------------------------------------------
+            b_plan[26,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    b_plan[10,2]+(1-b_plan[26,2])*b_plan[11,2]+b_plan[12,2])),0)
+            
+            b_plan[27,2] <- round(b_plan[26,3]/b_plan[1,3], 4)
+            
+            b_plan[27,3] <- round(b_plan[27,2]*b_plan[8,3],0)
+            
+            b_plan[28,2] <- round(1-b_plan[27,2], 4)
+            
+            b_plan[28,3] <- round(b_plan[8,3]-b_plan[27,3],0)
+            
+            #Wear tear----------------------------------------------------------------------
+            b_plan[29,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    b_plan[10,2]+b_plan[11,2]+(1-b_plan[29,2])*b_plan[12,2])),0)
+            
+            b_plan[30,2] <- round(b_plan[29,3]/b_plan[1,3], 4)
+            
+            b_plan[30,3] <- round(b_plan[30,2]*b_plan[8,3],0)
+            
+            b_plan[31,2] <- round(1-b_plan[30,2], 4)
+            
+            b_plan[31,3] <- round(b_plan[8,3]-b_plan[30,3],0)
+            
+            #Effectiveness -------------------------------------------------------------------
+            b_plan[32,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    b_plan[10,2]+(1-b_plan[32,2])*(b_plan[11,2]+b_plan[12,2]))),0)
+            
+            b_plan[33,2] <- round(b_plan[32,3]/b_plan[1,3], 4)
+            
+            b_plan[33,3] <- round(b_plan[33,2]*b_plan[8,3],0)
+            
+            b_plan[34,2] <- round(1-b_plan[33,2], 4)
+            
+            b_plan[34,3] <- round(b_plan[8,3]-b_plan[33,3],0)
+            
+            #Coverage-----------------------------------------------------------------
+            b_plan[35,3] <- round(b_plan[35,2]*b_plan[1,3], 0)
+            
+            b_plan[36,3] <- round(b_plan[35,2]*b_plan[8,3],0)
+           
 
             b_plan$Amount <- sapply(b_plan$Amount, FUN=function(x) prettyNum(x, big.mark=","))
             
@@ -349,38 +417,35 @@ server <- function(input, output) {
       
       DT::renderDataTable({
         df <- data()
-        
-        if(!is.na(df$Percentage)){
-              df$Percentage <- sprintf("%.2f", df$Percentage)
-        }
-        
-        colors <-  c(rep("'palegreen3,'", 8),
-                     rep("'skyblue3,'", 8),
-                     rep("'linen,'", 6),
-                     "linen")
-
-         datatable(df, 
+    
+         datatable(df,
                   rownames = FALSE,
                   options = list(
-                    #autoWidth = TRUE,
-                    columnDefs = list(list(width = "100px", targets = 2)),
+                    autoWidth = TRUE,
+                    columnDefs = list(list(width = "250px", targets = c(0,1,2)), list(className = "dt-center", targets = c(1,2))),
                     pageLength = 23, info = FALSE, lengthMenu = 30,
                     paging = FALSE,
                     searching = FALSE,
-                    lengthChange = FALSE
+                    lengthChange = FALSE,
+                    ordering = FALSE
+                    
                   ))%>%
-           formatStyle("Variable", target="row",
-                   backgroundColor =  styleEqual(c(df$Variable[1:8], df$Variable[9:16], df$Variable[17:23]), 
-                            c(c("lightgreen", "lightgreen", "lightgreen", "lightgreen"
-                                , "lightgreen", "lightgreen", "lightgreen", "lightgreen"), 
-                              c("lightblue","lightblue","lightblue","lightblue",
-                                "lightblue","lightblue","lightblue","lightblue"),
-                              c("orange", "orange","orange","orange","orange","orange","orange"))),
-                   fontWeight = styleEqual(c(df$Variable[8], df$Variable[16],df$Variable[23]), c("bold", "bold", "bold")))
-        }
+           formatStyle("Amount", target="row",
+                       backgroundColor =  styleEqual(c(df$Amount[1:8], df$Amount[9:16], df$Amount[17:37]), 
+                                                     c(c("lightgreen", "lightgreen", "lightgreen", "lightgreen"
+                                                         , "lightgreen", "lightgreen", "lightgreen", "lightgreen"), 
+                                                       c("lightblue","lightblue","lightblue","lightblue",
+                                                         "lightblue","lightblue","lightblue","lightblue"),
+                                                       c("orange", "orange","orange","orange","orange","orange","orange", "orange", "orange", "orange",
+                                                         "orange","orange","orange","orange","orange","orange","orange","orange","orange","orange","orange"))),
+                       
+                       fontWeight = styleEqual(c(df$Amount[8], df$Amount[16]), c("bold", "bold"))
+                       ,
+                       border = styleEqual(c(df$Amount[8], df$Amount[16]), c("2px solid red", "2px solid red"))) #this is not working
+         
+           
         
-        
-      )
+        })
 
     
 }
