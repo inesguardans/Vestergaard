@@ -48,6 +48,9 @@ ui <- fluidPage(
         
         # Sidebar panel for inputs ----
         sidebarPanel(
+
+
+          style = "position: fixed; height: 90vh; overflow-y: auto;",
             
             # Input: Select a where the % of cost of distrib of total budget comes from ----
             selectInput("distrib", "Cost of distribution %",
@@ -122,21 +125,42 @@ ui <- fluidPage(
                          verbatimTextOutput("summary"),
                          
                          h4("Data"),
-                         DT::dataTableOutput("Bplan")
+                         DT::dataTableOutput("Bplan"),
+                         br(),
+                         br(),
+                         br()
                          ),
                 
                 tabPanel("Tab 2", h4("Graphs"),
+                         verbatimTextOutput("summary2"),
+                         br(),
+                         br(),
+                         br(),
                          plotlyOutput("global_market"),
-                         
+                         br(),
+                         br(),
+                         br(),
                          plotlyOutput("parameters"),
-                         
+                         br(),
+                         br(),
+                         br(),
                          plotlyOutput("actual"),
-                         
+                         br(),
+                         br(),
+                         br(),
                          plotlyOutput("loss_usage"),
-
+                         br(),
+                         br(),
+                         br(),
                          plotlyOutput("insecticide_wear"),
-
-                         plotlyOutput("effectiveness_geo")
+                         br(),
+                         br(),
+                         br(),
+                         plotlyOutput("effectiveness_geo"),
+                         br(),
+                         br(),
+                         br(),
+                         plotlyOutput("value")
                 )
             
                 
@@ -465,20 +489,43 @@ server <- function(input, output) {
 
         })
     #--------------------------------------------------------------------------------------------------------------------------------
+    output$summary2 <- renderPrint({
+      choice <- c(distribInput(), priceInput(), lostInput(), useInput(),
+                  insecticide_effInput(), wear_tearInput(), "", "")
+      labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
+                  input$insecticide_efficacy,
+                  input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
+                  input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement
+      )
+      
+      names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
+                 "Insecticide efficacy", "Attrition wear & tear", "Loss reduction %", "Usage improvement %",
+                 "Bioefficacy improvement %", "Effectiveness improvement %", "Regional coverage improvement %")
+      
+      summary <- matrix(labels, nrow = 1, ncol = 11)
+      summary <- rbind(summary, choice)
+      
+      colnames(summary) <- names
+      rownames(summary) <- c("", "")
+      
+      summary
+      
+    })
+    
     output$global_market <- renderPlotly({
       df <- data()
       p1 <- df %>%
         filter(Variable %in% c("Market size", "Cost of Distribution", "Total Annual Cost"
         ))%>%
         ggplot(aes(x = Variable, y = Percentage*100, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar(stat = "identity", fill = "rosybrown1")+
+        geom_bar(stat = "identity", fill = "rosybrown1", width = 0.6)+
         #geom_text(aes(label = Percentage), position = position_dodge(width = 0.9), vjust= -1)+
         scale_y_continuous(expand = c(0,0),
                            limits = c(0,100))+
         labs(x = "Value", y = "")+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
-              text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 6),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 8),
               plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10),
               axis.title.y = element_text(size = 10))
       
@@ -488,12 +535,12 @@ server <- function(input, output) {
         filter(Variable %in% c("Market size", "Cost of Distribution", "Total Annual Cost"
                                ))%>%
         ggplot(aes(x = Variable, y = Amount ,text = paste("Value:", Amount))) +
-        geom_bar(stat = "identity", fill = "rosybrown3")+
+        geom_bar(stat = "identity", fill = "rosybrown3", width = 0.6)+
         ggtitle("Global Market: 211,297,998 LLINs")+ labs(x = "Percentage of Total budget", y = "")+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
-              text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 6),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5, face = "bold"), axis.title.x = element_text(size = 10),
               axis.title.y = element_text(size = 10))
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
@@ -513,13 +560,13 @@ server <- function(input, output) {
                                "Minimal insecticide efficacy loss", "Wear and tear loss"))
       
       p1 <- ggplot(df1, aes(x = Variable, y = Percentage*100, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar(stat = "identity", fill = "cadetblue3")+
+        geom_bar(stat = "identity", fill = "cadetblue3", width = 0.5)+
         scale_y_continuous(expand = c(0,0),
                            limits = c(0,100))+
         labs(x = "Percentage of parameters")+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
-              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 6),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
               axis.title.x = element_text(size = 10))
       
       ply1 <- ggplotly(p1, tooltip = c("text"))
@@ -529,12 +576,12 @@ server <- function(input, output) {
         filter(Variable %in% c("LLIN lost", "Not used every night", 
                                "Minimal insecticide efficacy loss", "Wear and tear loss"))
       p2<- ggplot(df2, aes(x = Variable, y = Amount, text = paste("Value:", Amount))) +
-        geom_bar( stat = "identity", fill = "darkslategray4")+
+        geom_bar( stat = "identity", fill = "darkslategray4", width = 0.5)+
         ggtitle("Parameters")+ labs(x = "Value of parameters")+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
-              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 6),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10))
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5, face = "bold"), axis.title.x = element_text(size = 10))
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
@@ -553,12 +600,12 @@ server <- function(input, output) {
       p <- df %>%
         filter(Variable %in% c("Actual value of LLINs purchased", "Lost value (all nets)"))%>%
         ggplot(aes(x = Variable, y = Amount, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar( stat = "identity", fill = "#1B7837", width = 0.4)+
+        geom_bar( stat = "identity", fill = "#1B7837", width = 0.5)+
         ggtitle(paste("LLINs efficiently used:", LLINs))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10))
+              plot.title = element_text(size = 12, hjust = 0.5, face = "bold"), axis.title.x = element_text(size = 10))
       
       ply <- ggplotly(p, tooltip = c("text"))
       
@@ -567,6 +614,8 @@ server <- function(input, output) {
    #---------------------------------------------------------------------------------------------
     output$loss_usage <- renderPlotly({
       df <- data()
+
+      
       reduction_loss <- df[20,2]*100
       improve_usage <- df[23,2]*100
       df1 <- df[21:22,]
@@ -577,25 +626,29 @@ server <- function(input, output) {
       
       p1 <- df1 %>%
         ggplot(aes(x = Variable, y = Amount, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar( stat = "identity", fill = "#BDC9E1", width = 0.4)+
+        geom_bar( stat = "identity", fill = "#BDC9E1", width = 0.5)+
         facet_wrap(~lab)+
         labs(y = "Value")+
+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"))
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 10, face = "bold"))
       
       ply1 <- ggplotly(p1, tooltip = c("text"))
       
       p2 <- df2 %>%
         ggplot(aes(x = Variable, y = Amount, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar( stat = "identity", fill = "#016C59", width = 0.4)+
+        geom_bar( stat = "identity", fill = "#016C59", width = 0.5)+
         facet_wrap(~lab)+
         labs(y = "Value")+
+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"))
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 10, face = "bold"))
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
@@ -607,6 +660,7 @@ server <- function(input, output) {
     output$insecticide_wear <- renderPlotly({
       
       df <- data()
+
       improve_insecticide <- df[26,2]*100
       reduce_wear <- df[29,2]*100
       df1 <- df[27:28,]
@@ -617,25 +671,29 @@ server <- function(input, output) {
       
       p1 <- df1 %>%
         ggplot(aes(x = Variable, y = Amount, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar( stat = "identity", fill = "#66C2A5", width = 0.4)+
+        geom_bar( stat = "identity", fill = "#66C2A5", width = 0.5)+
         facet_wrap(~lab)+
         labs(y = "Value")+
+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"))
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 10, face = "bold"))
       
       ply1 <- ggplotly(p1, tooltip = c("text"))
       
       p2 <- df2 %>%
         ggplot(aes(x = Variable, y = Amount, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar( stat = "identity", fill = "#FC8D62", width = 0.4)+
+        geom_bar( stat = "identity", fill = "#FC8D62", width = 0.5)+
         facet_wrap(~lab)+
         labs(y = "Value")+
+       
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"))
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 10, face = "bold"))
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
@@ -648,6 +706,7 @@ server <- function(input, output) {
     output$effectiveness_geo <- renderPlotly({
       
       df <- data()
+
       improve_effectiveness<- df[32,2]*100
       coverage_need <- df[35,2]*100
       df1 <- df[33:34,]
@@ -658,32 +717,76 @@ server <- function(input, output) {
       
       p1 <- df1 %>%
         ggplot(aes(x = Variable, y = Amount, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar( stat = "identity", fill = "#CAB2D6" , width = 0.4)+
+        geom_bar( stat = "identity", fill = "#CAB2D6" , width = 0.5)+
         facet_wrap(~lab)+
         labs(y = "Value")+
+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"))
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 10, face = "bold"))
       
       ply1 <- ggplotly(p1, tooltip = c("text"))
       
       p2 <- df2 %>%
         ggplot(aes(x = Variable, y = Amount, text = paste("Value", Amount))) +
-        geom_bar( stat = "identity", fill = "#92C5DE", width = 0.4)+
+        geom_bar( stat = "identity", fill = "#92C5DE", width = 0.5)+
         facet_wrap(~lab)+
         labs(x = "bla", y = "Value")+
+
         scale_x_discrete(labels= "% Reduction in coverage need")+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"))
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 10, face = "bold"))
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
       plot <- subplot(ply1, ply2, titleY = TRUE, titleX = TRUE, margin = 0.07)
       dev.off()
       plot
+    })
+    
+    #----------------------------------------------------------------
+    
+    output$value <- renderPlotly({
+      df <- data()
+
+      r1 <- df[19,]
+      r2 <- df[22,]
+      r3 <- df[25,]
+      r4 <- df[28,]
+      r5 <- df[30,]
+      r6 <- df[33,]
+      r7 <- df[36,]
+      df1 <- rbind(r1, r2, r3, r4, r5, r6, r7) %>%
+        as.data.frame() 
+      df1$lab <- "Total lost value"
+      
+      df1 <- df1 %>%
+        mutate(axis = c("Baseline lost value (all nets)", "Lost value with loss reduction",
+                        "Lost value with usage improvement", "Lost value with bioefficacy improvement", "Lost value with attrition improvement",
+                        "Lost value with effectiveness improvement", "Lost value with coverage need reduction"))
+               
+      
+      
+      p1 <- df1 %>%
+        ggplot(aes(x = axis, y = Amount, text = paste("Lost value of LLINs", "$",Amount))) +
+        geom_bar( stat = "identity", fill = "#FFD92F", width = 0.4)+
+        facet_wrap(~lab)+
+    
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+              panel.background = element_blank(), axis.line = element_line(colour = "black"),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 10, face = "bold"))
+      
+      ply1 <- ggplotly(p1, tooltip = c("text"))
+      ply1
+      
+      
     })
     
 }

@@ -45,6 +45,41 @@ iris_new <- formattable(iris, list(
 ))
 
 df <- b_plan
+r1 <- df[19,]
+r2 <- df[22,]
+r3 <- df[25,]
+r4 <- df[28,]
+r5 <- df[30,]
+r6 <- df[33,]
+r7 <- df[36,]
+df1 <- rbind(r1, r2, r3, r4, r5, r6, r7) %>%
+  as.data.frame() 
+df1$lab <- "Total lost value"
+df1 <- df1 %>%
+  mutate(axis = c("Baseline lost value (all nets)", "Lost value with loss reduction",
+             "Lost value with usage improvement", "Lost value with bioefficacy improvement", "Lost value with attrition improvement",
+            "Lost value with effectiveness improvement", "Lost value with coverage need reduction"))
+
+
+p1 <- df1 %>%
+  ggplot(aes(x = axis, y = Amount, text = paste("Lost value of LLINs", "$",Amount))) +
+  geom_bar( stat = "identity", fill = "#92C5DE", width = 0.4)+
+  facet_wrap(~lab)+
+  scale_y_continuous(labels = scales::dollar_format())+
+  #labs(x = "Improvement")+
+  # scale_x_discrete("Improvement", breaks = c("1", "2", "3", "4", "5", "6", "7",
+  #                                           labels= c("Baseline lost value (all nets)", "Lost value with loss reduction",
+  #                                                      "Lost value with usage improvement", "Lost value with bioefficacy improvement", "Lost value with attrition improvement",
+  #                                                      "Lost value with effectiveness improvement", "Lost value with coverage need reduction")))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+        plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+        strip.text = element_text(size = 10, colour = "red", face = "bold-italics"))
+
+ply1 <- ggplotly(p1, tooltip = c("text"))
+ply1
+
 p1 <- df %>%
   filter(Variable %in% c("Market size", "Cost of Distribution", "Total Annual Cost"
   ))%>%
