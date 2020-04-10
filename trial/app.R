@@ -1,107 +1,204 @@
 
-    ui = fluidPage(
-      fluidRow(
-        column(12,
-               dataTableOutput('table')
-        )
-      )
-    )
-    
-    server = function(input, output) {
-     output$table <- DT::renderDataTable({
-       
-        
-        datatable(iris, 
-                  rownames = FALSE,
-                  options = list(
-                    autoWidth = TRUE,
-                    
-                    columnDefs = list(list(width = "250px", targets = c(0,1,2)), list(className = "dt-center", targets = c(1,2))),
-                    pageLength = 23, info = FALSE, lengthMenu = 30,
-                    paging = FALSE,
-                    searching = FALSE,
-                    lengthChange = FALSE,
-                    ordering = FALSE
-                    
-                  ))%>%
-         formatStyle("Sepal.Width", target="row",
-                     backgroundColor =  styleEqual(iris$Sepal.Width[2], 
-                                                  "lightgreen")
-                     ,
-                     borderTop = styleEqual(c(iris$Sepal.Width[3], iris$Sepal.Width[5]), c("2px solid red", "2px solid red"))) #this is not working because the target is "row". But it want it to be "row"
-       
-        
-        
-      })
-      
-    }
 
-    shinyApp(ui, server)
+library(shiny)
+library(readxl)
+library(shinythemes)
+library(dplyr)
+library(scales)
+library(DT)
+library(htmlwidgets)
+library(htmltools)
+
+
+
+input1 <- 0.1
+input2 <- 0.2
+input3 <- 0.3
+
+
+
+
+# Define UI for dataset viewer app ----
+ui <- fluidPage(
+  
+  
+  theme = shinythemes::shinytheme("flatly"),
+  
+  
+  # App title ----
+  titlePanel("Business Plan"),
+  
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
     
-    #---------------------------------------------------------------------------
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+      
+
+      
+      #--------------------------------------------
+      
+
+      
+      #-------------------------------------------
+      selectInput("input1", "A",
+                  choices = c("input1", "Other"),
+                  selected = "input1"),
+      
+      
+      uiOutput("other_input1"),
+      
+      #-------------------------------------------
+      
+      selectInput("input2", "B",
+                  choices = c("input2", "Other"),
+                  selected = "input2"),
+      
+      uiOutput("other_input2"),
+      #-------------------------------------------
+      
+      selectInput("input3", "C",
+                  choices = c("input3", "Other"),
+                  selected = "input3"),
+      
+      uiOutput("other_input3"),
+      
+      #-------------------------------------------
+
+      
+      # Include clarifying text ----
+      helpText("Note: Please specify the parameters you wish to display"),
+      
+      
+      
+    ),
     
-    ui = fluidPage(
-      fluidRow(
-        column(12,
-               plotlyOutput('plot')
+    # Main panel for displaying outputs ----
+    mainPanel(
+      
+      tabsetPanel(
+        tabPanel("Tab 1",
+              
+                 
+                 h4("Data"),
+                 DT::dataTableOutput("Table")
         )
       )
+      
+      
+      
+      
+      
     )
     
-    server = function(input, output) {
-      output$plot <- renderPlotly({
-        
-        
-        
-        p1 <- ggplot(mtcars, aes(wt, mpg, text = row.names(mtcars))) + 
-          geom_bar(stat = "identity")
-        ply1<- ggplotly(p1, tooltip = c("text"))
-        
-        p2 <- ggplot(mtcars, aes(wt, cyl, text = paste("Disp:", disp))) + 
-          geom_bar(stat = "identity")
-        ply2<- ggplotly(p2, tooltip = c("text"))
-        
-        
-        subp <- subplot(ply1, ply2)
-        dev.off()
-        subp
-        
-        
-      })
-      
+  )
+)
+
+# Define server logic to summarize and view selected dataset ----
+server <- function(input, output) {
+  
+  
+  
+  output$other_input1 <- renderUI({
+    if(input$input1 == "Other"){
+      numericInput("A_other", "If other, please specify %:", 0)
+    }
+    else{
+      return(NULL)
     }
     
-    shinyApp(ui, server)
-    
-    #-------------------------------------------------------------
-    
-    if (interactive()) {
-      library(shiny)
-      library(ECharts2Shiny)
-      
-      # Prepare sample data for plotting --------------------------
-      dat <- data.frame(c(1, 2, 3),
-                        c(2, 4, 6))
-      names(dat) <- c("Type-A", "Type-B")
-      row.names(dat) <- c("Time-1", "Time-2", "Time-3")
-      
-      # Server function -------------------------------------------
-      server <- function(input, output) {
-        # Call functions from ECharts2Shiny to render charts
-        renderBarChart(div_id = "test", grid_left = '1%', direction = "vertical",
-                       data = dat)
-      }
-      
-      # UI layout -------------------------------------------------
-      ui <- fluidPage(
-        # We MUST load the ECharts javascript library in advance
-        loadEChartsLibrary(),
-        
-        tags$div(id="test", style="width:50%;height:400px;"),
-        deliverChart(div_id = "test")
-      )
-      
-      # Run the application --------------------------------------
-      shinyApp(ui = ui, server = server)
+  })
+  
+  
+  output$other_input2 <- renderUI({
+    if(input$input2 == "Other"){
+      numericInput("B_other", "If other, please specify %:", 0)
     }
+    else{
+      return(NULL)
+    }
+  })
+  
+  output$other_input3<- renderUI({
+    if(input$input3== "Other"){
+      numericInput("C_other", "If other, please specify %:", 0)
+    }
+    else{
+      return(NULL)
+    }
+  })
+  
+  
+  
+  
+  # Return the requested dataset ----
+  
+  
+  
+  #---------------------------------
+  Input1 <- reactive({
+    if(input$input1 != "Other"){
+      Input1 <- input1
+    }
+    else{
+      Input1 <- as.numeric(input$A_other/100)
+    }
+  })
+  
+  #---------------------------------
+  
+  Input2 <- reactive({
+    if(input$input2 != "Other"){
+      Input2 <- input2
+    }
+    else{
+      Input2 <- as.numeric(input$B_other/100)
+    }
+  })
+  
+  #---------------------------------
+  Input3 <- reactive({
+    if(input$input3 != "Other"){
+      Input3 <- input3
+    }
+    else{
+      Input3 <- as.numeric(input$C_other/100)
+    }
+  })
+
+  #-----------------------------------
+  data <- reactive({
     
+    mtcars[2,2] <- Input1()
+    mtcars[3,2] <- Input2()
+    mtcars[4,2] <- Input3()
+
+    
+    mtcars
+  })
+
+  # Filter data based on selections
+  
+  output$Table <- 
+    
+    DT::renderDataTable({
+      df <- data()
+      
+      datatable(df,
+                rownames = TRUE,
+                options = list(
+                  autoWidth = TRUE,
+                  pageLength = 23, info = FALSE
+                ))%>%
+        formatStyle("hp", target="row",
+                    fontWeight = styleEqual(c(hp$mpg[2], hp$mpg[3]), c("bold", "bold")),
+                    backgroundColor = styleEqual(c(hp$mpg[2], hp$mpg[3]), c("red", "red"))) #this is not working
+      
+
+    })
+  
+}
+
+# Create Shiny app ----
+shinyApp(ui, server)
+
