@@ -6,9 +6,41 @@ b_plan<- read_excel("B_plan_data.xlsx")%>%
   #mutate(Amount = round(Amount, 0))%>%
   as.data.frame()
 
+# 
+# rownames(b_plan) <- b_plan$Variable
+# b_plan[1] <- NULL
 
-rownames(b_plan) <- b_plan$Variable
-b_plan[1] <- NULL
+PMI_distrib <- 0.29
+GF <- 0.35
+AMF <- 0.04
+
+df <- b_plan %>%
+  filter(Variable %in% c("Market size", "Cost of distribution", "Total Annual Cost"))%>%
+  rbind(c("Market size", 1-GF, 545148835),
+        c("Cost of distribution", GF, round(545148835.84*GF/(1-GF),0)),
+        c("Total Annual Cost", 1, round(545148835.84+545148835.84*GF/(1-GF),0)),
+        c("Market size", 1-AMF, 545148835),
+        c("Cost of distribution", AMF, round(545148835.84*AMF/(1-AMF),0)),
+        c("Total Annual Cost", 1, round(545148835.84+545148835.84*AMF/(1-AMF),0)))%>%
+  mutate(Source = c("PMI", "PMI","PMI","GF", "GF", "GF", "AMF", "AMF", "AMF"),
+         Percentage = as.numeric(Percentage),
+         Amount = as.numeric(Amount))
+
+p1 <- df %>%
+  ggplot(aes(x = Variable, y = Percentage*100, fill=Source,  text = paste("Percentage:", Percentage*100, "%"))) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.6)+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,100))+
+  labs(x = "Percentage of total PMI budget", y = "")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 8),
+        plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10),
+        axis.title.y = element_text(size = 10))
+
+ply1 <- ggplotly(p1, tooltip = c("text"))
+
+
 
 
 PMI_distrib <- 0.29
@@ -138,7 +170,7 @@ subp
 #------------------------------------------------------------------------
 #------------------------------------------------------------------------
 
-
+df <- b_plan
 reduction_loss <- df[20,2]*100
 improve_usage <- df[23,2]*100
 df1 <- df[21:22,]

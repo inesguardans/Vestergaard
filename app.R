@@ -21,7 +21,7 @@ distribution_price <- 3.98
 
 PMI_distrib <- 0.29
 GF <- 0.35
-AMF <- 0.4
+AMF <- 0.04
 
 lost_vect <- 0.123
 usage_vect <- 0.4308
@@ -54,7 +54,7 @@ ui <- fluidPage(
             
             # Input: Select a where the % of cost of distrib of total budget comes from ----
             selectInput("distrib", "Cost of distribution %",
-                        choices = c("PMI; 29%", "GF; 35%", "AMF; 40%", "Other"),
+                        choices = c("PMI; 29%", "GF; 35%", "AMF; 4%", "Other"),
                         selected = "PMI; 29%"),
             
             uiOutput("other_distrib"),
@@ -526,30 +526,41 @@ server <- function(input, output) {
     })
     
     output$global_market <- renderPlotly({
-      df <- data()
+      df <- b_plan %>%
+        filter(Variable %in% c("Market size", "Cost of distribution", "Total Annual Cost"))%>%
+        rbind(c("Market size", 1-GF, 545148835),
+              c("Cost of distribution", GF, round(545148835.84*GF/(1-GF),0)),
+              c("Total Annual Cost", 1, round(545148835.84+545148835.84*GF/(1-GF),0)),
+              c("Market size", 1-AMF, 545148835),
+              c("Cost of distribution", AMF, round(545148835.84*AMF/(1-AMF),0)),
+              c("Total Annual Cost", 1, round(545148835.84+545148835.84*AMF/(1-AMF),0)))%>%
+        mutate(Source = c("PMI", "PMI","PMI","GF", "GF", "GF", "AMF", "AMF", "AMF"),
+               Percentage = as.numeric(Percentage),
+               Amount = as.numeric(Amount))
+      
+
       p1 <- df %>%
-        filter(Variable %in% c("Market size", "Cost of Distribution", "Total Annual Cost"
-        ))%>%
-        ggplot(aes(x = Variable, y = Percentage*100, text = paste("Percentage:", Percentage*100, "%"))) +
-        geom_bar(stat = "identity", fill = "rosybrown1", width = 0.6)+
-        #geom_text(aes(label = Percentage), position = position_dodge(width = 0.9), vjust= -1)+
+        ggplot(aes(x = Variable, y = Percentage*100, fill=Source,  text = paste("Percentage:", Percentage*100, "%"))) +
+        geom_bar(stat = "identity", position = position_dodge(), width = 0.6)+
+        #guides(fill = FALSE)+
         scale_y_continuous(expand = c(0,0),
                            limits = c(0,100))+
-        labs(x = "Percentage of total PMI budget", y = "")+
+        scale_fill_manual(values =  c("#C7E9C0" ,"#74C476" ,"#41AB5D"))+
+        labs(x = "Percentage of total budget", y = "")+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 8),
               plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10),
               axis.title.y = element_text(size = 10))
       
-      ply1 <- ggplotly(p1, tooltip = c("text"))
+      ply1 <- ggplotly(p1, tooltip = c("text"), showlegend=FALSE)
       
       p2 <- df %>%
-        filter(Variable %in% c("Market size", "Cost of Distribution", "Total Annual Cost"
-                               ))%>%
-        ggplot(aes(x = Variable, y = Amount ,text = paste("Value:", Amount))) +
-        geom_bar(stat = "identity", fill = "rosybrown3", width = 0.6)+
-        ggtitle("Global Market: 211,297,998 LLINs")+ labs(x = "PMI budget", y = "")+
+        ggplot(aes(x = Variable, y = mycurrency(Amount) ,fill = Source, text = paste("Value:", mycurrency(Amount)))) +
+        geom_bar(stat = "identity", position = position_dodge(),  width = 0.6)+
+        #guides(fill = FALSE)+
+        scale_fill_manual(values = c("#DADAEB", "#BCBDDC" ,"#9E9AC8"))+
+        ggtitle("Global Market: 211,297,998 LLINs")+ labs(x = "Budgets", y = "")+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 8),
@@ -559,7 +570,7 @@ server <- function(input, output) {
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
       
-      plot <- subplot(ply1, ply2, titleX = TRUE, margin = 0.07)
+      plot <- subplot(ply1, ply2, shareX=TRUE, titleX = TRUE, margin = 0.07)
    
       plot
       
@@ -656,7 +667,7 @@ server <- function(input, output) {
         guides(fill = FALSE)+
         facet_wrap(~lab)+
         labs(y = "Value ($)")+
-        scale_fill_manual(values=c("#8856A7","#D53E4F"))+
+        scale_fill_manual(values=c("#99D8C9","#FBB4AE"))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               legend.position = "none",
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
@@ -671,7 +682,7 @@ server <- function(input, output) {
         guides(fill = FALSE)+
         facet_wrap(~lab)+
         labs(y = "Value")+
-        scale_fill_manual(values=c("#016C59","#D53E4F"))+
+        scale_fill_manual(values=c("#41AE76","#FBB4AE"))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
               plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background = element_rect(fill="white"),
@@ -710,7 +721,7 @@ server <- function(input, output) {
         facet_wrap(~lab)+
         guides(fill = FALSE)+
         labs(y = "Value")+
-        scale_fill_manual(values=c("#66C2A5","#D53E4F"))+
+        scale_fill_manual(values=c("#C2A5CF","#FBB4AE"))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
@@ -724,7 +735,7 @@ server <- function(input, output) {
         facet_wrap(~lab)+
         guides(fill = FALSE)+
         labs(y = "Value")+
-        scale_fill_manual(values=c("#FC8D62","#D53E4F"))+
+        scale_fill_manual(values=c("#9970AB","#FBB4AE"))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
@@ -769,7 +780,7 @@ server <- function(input, output) {
         guides(fill = FALSE)+
         labs(y = "Value")+
         scale_y_continuous(labels = dollar_format())+
-        scale_fill_manual(values=c("#CAB2D6" ,"#D53E4F"))+        
+        scale_fill_manual(values=c("#4393C3" ,"#FBB4AE"))+        
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
