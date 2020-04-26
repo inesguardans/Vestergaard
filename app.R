@@ -20,7 +20,7 @@ procurement_price <- 2.74
 distribution_price <- 3.98
 
 PMI_distrib <- 0.29
-GF <- 0.35
+GF <- 0.15
 AMF <- 0.04
 
 lost_vect <- 0.123
@@ -54,7 +54,7 @@ ui <- fluidPage(
             
             # Input: Select a where the % of cost of distrib of total budget comes from ----
             selectInput("distrib", "Cost of distribution %",
-                        choices = c("PMI; 29%", "GF; 35%", "AMF; 4%", "Other"),
+                        choices = c("PMI; 29%", "GF; 15%", "AMF; 4%", "Other"),
                         selected = "PMI; 29%"),
             
             uiOutput("other_distrib"),
@@ -62,7 +62,7 @@ ui <- fluidPage(
             #--------------------------------------------
             
             selectInput("price", "Price",
-                        choices = c("CEO; 2.58", "MOP procurement; 2.74", 
+                        choices = c("Internal pricing; 2.58", "MOP procurement; 2.74", 
                                     "MOP procurement and distribution; 3.98"),
                         selected = "CEO; 2.58"),
             
@@ -252,7 +252,7 @@ server <- function(input, output) {
             if(input$distrib != "Other"){
                 switch(input$distrib,
                        "PMI; 29%" = PMI_distrib,
-                       "GF; 35%" = GF,
+                       "GF; 15%" = GF,
                        "AMF; 40%" = AMF)
                 
             }
@@ -264,7 +264,7 @@ server <- function(input, output) {
         
         priceInput <- reactive({
             switch(input$price,
-                   "CEO; 2.58" = CEO_price,
+                   "Internal pricing; 2.58" = CEO_price,
                    "MOP procurement; 2.74" = procurement_price,
                    "MOP procurement and distribution; 3.98" = distribution_price)
         })
