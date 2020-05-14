@@ -8,6 +8,7 @@ library(plotly)
 library(ggplot2)
 library(RColorBrewer)
 library(gridExtra)
+library(foreign)
 
 b_plan<- read_excel("B_plan_data.xlsx", )%>%
     mutate(Amount = round(Amount, 0)
@@ -345,11 +346,11 @@ server <- function(input, output) {
             b_plan[11,2] <- insecticide_effInput()
             b_plan[12,2] <- wear_tearInput()
             b_plan[20,2] <- round(input$loss_reduction/100,2)
-            b_plan[23,2] <- round(input$usage_improvement/100,2)
-            b_plan[26,2] <- round(input$bioefficacy_improvement/100,2)
-            b_plan[29,2] <- round(input$wear_tear_improvement/100,2)
-            b_plan[32,2] <- round(input$effectiveness_improvement/100,2)
-            b_plan[35,2] <- round(input$coverage_improvement/100, 2)
+            b_plan[25,2] <- round(input$usage_improvement/100,2)
+            b_plan[30,2] <- round(input$bioefficacy_improvement/100,2)
+            b_plan[35,2] <- round(input$wear_tear_improvement/100,2)
+            b_plan[40,2] <- round(input$effectiveness_improvement/100,2)
+            b_plan[45,2] <- round(input$coverage_improvement/100, 2)
             
             
             b_plan[3,3] <- round(b_plan[2,3]*b_plan[1,3], 0)
@@ -394,7 +395,7 @@ server <- function(input, output) {
             
             #Loss ----------------------------------------------------------------------
             b_plan[20,3] <- round(b_plan[1,3]*(1-((1-b_plan[20,2])*b_plan[9,2]+
-                                                 b_plan[10,2]+b_plan[11,2]+b_plan[12,2])),0)
+                                                 b_plan[10,2]+b_plan[11,2]+ b_plan[12,2])),0)
             
             b_plan[21,2] <- round(b_plan[20,3]/b_plan[1,3], 4)
             
@@ -403,69 +404,86 @@ server <- function(input, output) {
             b_plan[22,2] <- round(1-b_plan[21,2], 4)
             
             b_plan[22,3] <- round(b_plan[8,3]-b_plan[21,3])
+            
+            b_plan[23,3] <- round((b_plan[20,3]-b_plan[17,3])*2/1000*5.6, 0)
+            
+            b_plan[24,3] <- round((b_plan[20,3]-b_plan[17,3])*2/1000*128, 0)
 
             #Usage  ------------------------------------------------------------------------
-            b_plan[23,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
-                                                    (1-b_plan[23,2])*b_plan[10,2]+b_plan[11,2]+b_plan[12,2])),0)
+            b_plan[25,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    (1-b_plan[25,2])*b_plan[10,2]+b_plan[11,2]+b_plan[12,2])),0)
             
-            b_plan[24,2] <- round(b_plan[23,3]/b_plan[1,3], 4)
+            b_plan[26,2] <- round(b_plan[25,3]/b_plan[1,3], 4)
             
-            b_plan[24,3] <- round(b_plan[24,2]*b_plan[8,3],0)
+            b_plan[26,3] <- round(b_plan[26,2]*b_plan[8,3],0)
             
-            b_plan[25,2] <- round(1-b_plan[24,2], 4)
+            b_plan[27,2] <- round(1-b_plan[26,2], 4)
             
-            b_plan[25,3] <- round(b_plan[8,3]-b_plan[24,3],0)
+            b_plan[27,3] <- round(b_plan[8,3]-b_plan[26,3],0)
+            
+            b_plan[28,3] <- round((b_plan[25,3]-b_plan[17,3])*2/1000*5.6, 0)
+            
+            b_plan[29,3] <- round((b_plan[25,3]-b_plan[17,3])*2/1000*128, 0)
             
             #Bioefficacy -----------------------------------------------------------------------
-            b_plan[26,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
-                                                    b_plan[10,2]+(1-b_plan[26,2])*b_plan[11,2]+b_plan[12,2])),0)
+            b_plan[30,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    b_plan[10,2]+(1-b_plan[30,2])*b_plan[11,2]+b_plan[12,2])),0)
             
-            b_plan[27,2] <- round(b_plan[26,3]/b_plan[1,3], 4)
+            b_plan[31,2] <- round(b_plan[30,3]/b_plan[1,3], 4)
             
-            b_plan[27,3] <- round(b_plan[27,2]*b_plan[8,3],0)
+            b_plan[31,3] <- round(b_plan[31,2]*b_plan[8,3],0)
             
-            b_plan[28,2] <- round(1-b_plan[27,2], 4)
+            b_plan[32,2] <- round(1-b_plan[31,2], 4)
             
-            b_plan[28,3] <- round(b_plan[8,3]-b_plan[27,3],0)
+            b_plan[32,3] <- round(b_plan[8,3]-b_plan[31,3],0)
+            
+            b_plan[33,3] <- round((b_plan[30,3]-b_plan[17,3])*2/1000*5.6, 0)
+            
+            b_plan[34,3] <- round((b_plan[30,3]-b_plan[17,3])*2/1000*128, 0)
             
             #Wear tear----------------------------------------------------------------------
-            b_plan[29,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
-                                                    b_plan[10,2]+b_plan[11,2]+(1-b_plan[29,2])*b_plan[12,2])),0)
+            b_plan[35,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    b_plan[10,2]+b_plan[11,2]+(1-b_plan[35,2])*b_plan[12,2])),0)
             
-            b_plan[30,2] <- round(b_plan[29,3]/b_plan[1,3], 4)
+            b_plan[36,2] <- round(b_plan[35,3]/b_plan[1,3], 4)
             
-            b_plan[30,3] <- round(b_plan[30,2]*b_plan[8,3],0)
+            b_plan[36,3] <- round(b_plan[36,2]*b_plan[8,3],0)
             
-            b_plan[31,2] <- round(1-b_plan[30,2], 4)
+            b_plan[37,2] <- round(1-b_plan[36,2], 4)
             
-            b_plan[31,3] <- round(b_plan[8,3]-b_plan[30,3],0)
+            b_plan[37,3] <- round(b_plan[8,3]-b_plan[36,3],0)
             
+            b_plan[37,3] <- round((b_plan[35,3]-b_plan[17,3])*2/1000*5.6, 0)
+            
+            b_plan[38,3] <- round((b_plan[35,3]-b_plan[17,3])*2/1000*128, 0)
             #Effectiveness -------------------------------------------------------------------
-            b_plan[32,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
-                                                    b_plan[10,2]+(1-b_plan[32,2])*(b_plan[11,2]+b_plan[12,2]))),0)
+            b_plan[40,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
+                                                    b_plan[10,2]+(1-b_plan[40,2])*(b_plan[11,2]+b_plan[12,2]))),0)
             
-            b_plan[33,2] <- round(b_plan[32,3]/b_plan[1,3], 4)
+            b_plan[41,2] <- round(b_plan[40,3]/b_plan[1,3], 4)
             
-            b_plan[33,3] <- round(b_plan[33,2]*b_plan[8,3],0)
+            b_plan[41,3] <- round(b_plan[41,2]*b_plan[8,3],0)
             
-            b_plan[34,2] <- round(1-b_plan[33,2], 4)
+            b_plan[42,2] <- round(1-b_plan[41,2], 4)
             
-            b_plan[34,3] <- round(b_plan[8,3]-b_plan[33,3],0)
+            b_plan[42,3] <- round(b_plan[8,3]-b_plan[41,3],0)
+            
+            b_plan[43,3] <- round((b_plan[40,3]-b_plan[17,3])*2/1000*5.6, 0)
+            
+            b_plan[44,3] <- round((b_plan[40,3]-b_plan[17,3])*2/1000*128, 0)
             
             #Coverage-----------------------------------------------------------------
-            b_plan[35,3] <- round(b_plan[35,2]*b_plan[1,3], 0)
+            b_plan[45,3] <- round(b_plan[45,2]*b_plan[1,3], 0)
             
-            b_plan[36,3] <- round(b_plan[35,2]*b_plan[8,3],0)
+            b_plan[46,3] <- round(b_plan[45,2]*b_plan[8,3],0)
            
 
             b_plan$Amount <- sapply(b_plan$Amount, FUN=function(x) prettyNum(x, big.mark=","))
             
-            b_plan[c(3:4,6:13,15,16,18,19,21,22,24,25,27,28,30,31,33,34,36),3] <- paste("$", b_plan[c(3:4,6:13,15,16,18,19,21,22,24,25,27,28,30,31,33,34,36),3])
+            b_plan[c(3:4,6:13,15,16,18,19,21,22,26,27,31,32,36,37, 41, 42, 46),3] <- paste("$", b_plan[c(3:4,6:13,15,16,18,19,21,22,26,27,31,32,36,37, 41, 42, 46),3])
             
             b_plan
         })
-        
-        
         
 
     # Filter data based on selections
@@ -478,10 +496,13 @@ server <- function(input, output) {
                   , "lightgreen", "lightgreen", "lightgreen", "lightgreen",
                 "lightblue","lightblue","lightblue","lightblue",
                   "lightblue","lightblue","lightblue","lightblue",
-                "#F46D43","#F46D43","#F46D43","#D94801", "#D94801","#D94801",
-                "#F16913","#F16913","#F16913",
-                "#FD8D3C", "#FD8D3C", "#FD8D3C", "#FDAE6B","#FDAE6B","#FDAE6B", 
-                "#FDD0A2","#FDD0A2","#FDD0A2","#FFF5EB","#FFF5EB")
+                "#F46D43","#F46D43","#F46D43",
+                "#D94801", "#D94801","#D94801","#D94801","#D94801",
+                "#F16913","#F16913","#F16913","#F16913","#F16913",
+                "#FD8D3C", "#FD8D3C", "#FD8D3C", "#FD8D3C", "#FD8D3C", 
+                "#FDAE6B","#FDAE6B","#FDAE6B", "#FDAE6B","#FDAE6B",
+                "#FDD0A2","#FDD0A2","#FDD0A2","#FDD0A2","#FDD0A2",
+                "#FFF5EB","#FFF5EB")
          datatable(df, 
                   rownames = TRUE,
                   options = list(
