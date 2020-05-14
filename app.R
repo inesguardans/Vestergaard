@@ -453,9 +453,9 @@ server <- function(input, output) {
             
             b_plan[37,3] <- round(b_plan[8,3]-b_plan[36,3],0)
             
-            b_plan[37,3] <- round((b_plan[35,3]-b_plan[17,3])*2/1000*5.6, 0)
+            b_plan[38,3] <- round((b_plan[35,3]-b_plan[17,3])*2/1000*5.6, 0)
             
-            b_plan[38,3] <- round((b_plan[35,3]-b_plan[17,3])*2/1000*128, 0)
+            b_plan[39,3] <- round((b_plan[35,3]-b_plan[17,3])*2/1000*128, 0)
             #Effectiveness -------------------------------------------------------------------
             b_plan[40,3] <- round(b_plan[1,3]*(1-(b_plan[9,2]+
                                                     b_plan[10,2]+(1-b_plan[40,2])*(b_plan[11,2]+b_plan[12,2]))),0)
