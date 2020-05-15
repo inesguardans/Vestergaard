@@ -1,6 +1,7 @@
 library(shiny)
 library(readxl)
 library(shinythemes)
+library(tidyr)
 library(dplyr)
 library(scales)
 library(DT)
@@ -176,9 +177,26 @@ ui <- fluidPage(
                          br(),
                          br(),
                          br(),
-                         verbatimTextOutput("summary3"),
                          br(),
-                         plotlyOutput("differences")
+                         plotlyOutput("differences"),
+                         br(),
+                         br(),
+                         br(),
+                         h3("Health impact"),
+                         br(),
+                         br(),
+                         br(),
+                         plotlyOutput("health_loss_usage"),
+                         br(),
+                         br(),
+                         br(),
+                         br(),
+                         plotlyOutput("health_insecticide_wear"),
+                         br(),
+                         br(),
+                         br(),
+                         br(),
+                         plotlyOutput("health_effectiveness_geo")
                 )
             
                 
@@ -315,23 +333,26 @@ server <- function(input, output) {
         
 
     output$summary <- renderPrint({
-       choice <- c(distribInput(), priceInput(), lostInput(), useInput(),
-          insecticide_effInput(), wear_tearInput(), "", "")
-       labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
+       choice <- c(distribInput(), priceInput(), input$LLIN_lost, input$not_used, 
                    input$insecticide_efficacy,
                    input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
-                   input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement
-                    )
+                   input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement)
+       
+       # labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
+       #             input$insecticide_efficacy,
+       #             input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
+       #             input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement
+       #              )
        
        names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
                   "Insecticide efficacy", "Wear & tear", "Loss reduction %", "Usage improvement %",
-                  "Bioefficacy improvement %", "Effectiveness improvement %", "Regional coverage improvement %")
+                  "Bioefficacy improvement %", "Wear and tear improvement", "Effectiveness improvement %", "Regional coverage improvement %")
        
-       summary <- matrix(labels, nrow = 1, ncol = 11)
-       summary <- rbind(summary, choice)
+       summary <- matrix(choice, nrow = 1, ncol = 12)
+       #summary <- rbind(summary, choice)
        
        colnames(summary) <- names
-       rownames(summary) <- c("", "")
+       rownames(summary) <- c("")
        
        summary
 
@@ -524,28 +545,32 @@ server <- function(input, output) {
         })
     #--------------------------------------------------------------------------------------------------------------------------------
     output$summary2 <- renderPrint({
-      choice <- c(distribInput(), priceInput(), lostInput(), useInput(),
-                  insecticide_effInput(), wear_tearInput(), "", "")
-      labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
+      choice <- c(distribInput(), priceInput(), input$LLIN_lost, input$not_used, 
                   input$insecticide_efficacy,
                   input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
-                  input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement
-      )
+                  input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement)
+      
+      # labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
+      #             input$insecticide_efficacy,
+      #             input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
+      #             input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement
+      #              )
       
       names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
-                 "Insecticide efficacy", "Attrition wear & tear", "Loss reduction %", "Usage improvement %",
-                 "Bioefficacy improvement %", "Effectiveness improvement %", "Regional coverage improvement %")
+                 "Insecticide efficacy", "Wear & tear", "Loss reduction %", "Usage improvement %",
+                 "Bioefficacy improvement %", "Wear and tear improvement", "Effectiveness improvement %", "Regional coverage improvement %")
       
-      summary <- matrix(labels, nrow = 1, ncol = 11)
-      summary <- rbind(summary, choice)
+      summary <- matrix(choice, nrow = 1, ncol = 12)
+      #summary <- rbind(summary, choice)
       
       colnames(summary) <- names
-      rownames(summary) <- c("", "")
+      rownames(summary) <- c("")
       
       summary
       
     })
     
+    #################### PARAMETERS ######################################
     output$global_market <- renderPlotly({
       df <- b_plan %>%
         filter(Variable %in% c("Market size", "Cost of distribution", "Total Annual Cost"))%>%
@@ -660,12 +685,12 @@ server <- function(input, output) {
       ply
     })
    #---------------------------------------------------------------------------------------------
+    #################### IMPROVEMENTS ######################################
     output$loss_usage <- renderPlotly({
       df <- data()
 
-      
       reduction_loss <- df[20,2]*100
-      improve_usage <- df[23,2]*100
+      improve_usage <- df[25,2]*100
       df1 <- df[21:22,]
       df1$Lost_value <- "After loss reduction"
       
@@ -675,7 +700,7 @@ server <- function(input, output) {
       df3 <- rbind(df1, total)
       df3$lab <- paste("Reduce LLIN loss by:", reduction_loss, "%")
       #-----------------------------------------------------------------
-      df2 <- df[24:25,]
+      df2 <- df[26:27,]
       df2$Lost_value <- "After usage improvement"
     
       df4 <- rbind(df2, total)
@@ -720,9 +745,9 @@ server <- function(input, output) {
       
       df <- data()
 
-      improve_insecticide <- df[26,2]*100
-      reduce_wear <- df[29,2]*100
-      df1 <- df[27:28,]
+      improve_insecticide <- df[30,2]*100
+      reduce_wear <- df[35,2]*100
+      df1 <- df[31:32,]
       df1$Lost_value <- "After bioefficacy improvement"
       
       total <- df[8,]
@@ -731,13 +756,13 @@ server <- function(input, output) {
       df3$lab <- paste("Reduce insecticide efficacy by:", improve_insecticide, "%")
       
       #-----------------------------------------------------------------------------------------
-      df2 <- df[30:31,]
+      df2 <- df[36:37,]
       df2$Lost_value <- "After wear and tear improvement"
       
       df4 <- rbind(df2, total)
       df4$lab <- paste("Reduce wear and tear by:", reduce_wear, "%")
       
-      p1 <- ggplot(df4, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%"))) +
+      p1 <- ggplot(df3, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%"))) +
         geom_bar(stat = "identity", position = "dodge")+
         facet_wrap(~lab)+
         guides(fill = FALSE)+
@@ -774,10 +799,10 @@ server <- function(input, output) {
     output$effectiveness_geo <- renderPlotly({
       
       df <- data()
-      improve_effectiveness<- df[32,2]*100
-      coverage_need <- df[35,2]*100
+      improve_effectiveness<- df[40,2]*100
+      coverage_need <- df[45,2]*100
       
-      df1 <- df[33:34,]
+      df1 <- df[41:42,]
       df1$Lost_value <- "After effectiveness improvement"
       
       total <- df[8,]
@@ -805,8 +830,8 @@ server <- function(input, output) {
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
-              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
-              strip.text = element_text(size = 12, face = "italics", hjust = 0.5))
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_blank(), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 12, face = "italics", hjust = 0.5),  plot.margin = unit(c(1, 0, 0, 0), "cm"))
       
       ply1 <- ggplotly(p1, tooltip = c("text"))
       
@@ -838,10 +863,10 @@ server <- function(input, output) {
 
       r1 <- df[19,]
       r2 <- df[22,]
-      r3 <- df[25,]
-      r4 <- df[28,]
-      r5 <- df[31,]
-      r6 <- df[34,]
+      r3 <- df[27,]
+      r4 <- df[32,]
+      r5 <- df[37,]
+      r6 <- df[42,]
 
 
       df1 <- rbind(r1, r2, r3, r4, r5, r6) %>%
@@ -871,26 +896,24 @@ server <- function(input, output) {
       
       
     })
-    
 
-    
     output$differences <- renderPlotly({
       
       df <- data()
       
       r1 <- df[19,]
       r2 <- df[22,]
-      r3 <- df[25,]
-      r4 <- df[28,]
-      r5 <- df[31,]
-      r6 <- df[34,]
-      r7 <- df[36,]
+      r3 <- df[27,]
+      r4 <- df[32,]
+      r5 <- df[37,]
+      r6 <- df[41,]
+      r7 <- df[46,]
       
       df1 <- rbind(r1, r2, r3, r4, r5, r6, r7)
       
       df1 <- df1 %>%
         mutate(axis = c("Baseline lost value (all nets)", "Gain from loss reduction",
-                        "Gain from usage improvement", "Gain from bioefficacy improvement", "Lost value with wear and tear improvement",
+                        "Gain from usage improvement", "Gain from bioefficacy improvement", "Gain from wear and tear improvement",
                         "Gain from effectiveness improvement", "Gain from reduction in coverage need"),
                Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))),
                gain = Amount[1]-Amount)
@@ -913,9 +936,193 @@ server <- function(input, output) {
       ply1 <- ggplotly(p1, tooltip = c("text"))
       ply1
       
-      
     })
-}
+    
+    #################### HEALTH IMPACT ######################################
+    # output$summary3 <- renderPrint({
+    #   df <- data()
+    # 
+    # str(df)
+    #  })
+    # 
+
+    output$health_loss_usage <- renderPlotly({
+      df <- data() 
+      df <- df %>%
+        mutate(Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))))
+
+      improvement <- c(0.1, 0.15, 0.2, 0.25, 0.3)
+      improvement_loss_df <- data.frame(improvement)%>%
+        mutate(LLIN_loss = df[1,3]*(1-((1-improvement)*df[9,2]+df[10,2]+df[11,2]+df[12,2])),
+               deaths_prevented = round((LLIN_loss-df[17,3])*2/1000*5.6,0),
+               cases_prevented = round((LLIN_loss-df[17,3])*2/1000*128,0),
+               improvement = as.character(improvement),
+               ) %>% gather(variable, amount, c(deaths_prevented,cases_prevented), -improvement, -LLIN_loss) %>%
+        mutate(variable = case_when(variable == "deaths_prevented" ~ "Children deceased prevented",
+                                    variable == "cases_prevented" ~ "Malaria cases prevented"))
+
+      improvement_loss_df$lab <- "Health impact from \n LLIN loss reduction"
+      #-----------------------------------------------------------------
+      improvement_usage_df <- data.frame(improvement)%>%
+        mutate(LLIN_usage = df[1,3]*(1-(df[9,2]+(1-improvement)*df[10,2]+df[11,2]+df[12,2])),
+               deaths_prevented = round((LLIN_usage-df[17,3])*2/1000*5.6,0),
+               cases_prevented = round((LLIN_usage-df[17,3])*2/1000*128,0),
+               improvement = as.character(improvement)
+        )%>%
+        gather(variable, amount, c(deaths_prevented,cases_prevented), -improvement, -LLIN_usage) %>%
+        mutate(variable = case_when(variable == "deaths_prevented" ~ "Children deceased prevented",
+                                    variable == "cases_prevented" ~ "Malaria cases prevented"))
+
+      improvement_usage_df$lab <- "Health impact from \n LLIN usage improvement"
+
+      p1 <- ggplot(improvement_loss_df, aes(x = improvement, y = amount,  fill = variable,
+                                            text = paste("Health impact:", prettyNum(amount, big.mark=",")))) +
+        geom_bar(stat = "identity", position = "dodge")+
+        guides(fill = FALSE)+
+        facet_wrap(~lab)+
+        scale_fill_manual(values=c("#1B9E77","#7570B3"))+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 500000, 1000000, 2500000, 5000000, 6500000),
+                           labels = c(0,250000, 500000, 1000000, 2500000, 5000000, 65000000))+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 12, face = "bold", hjust = 0.5), plot.margin = unit(c(2, 2, 2, 2), "cm"))
+
+      ply1 <- ggplotly(p1, tooltip = c("text"))
+
+      p2 <- ggplot(improvement_usage_df, aes(x = improvement, y = amount,  fill = variable,
+                                            text = paste("Health impact:", prettyNum(amount, big.mark=",")))) +
+        geom_bar(stat = "identity", position = "dodge")+
+        guides(fill = FALSE)+
+        facet_wrap(~lab)+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 500000, 1000000, 2500000, 5000000, 6500000),
+                           labels = c(0,250000, 500000, 1000000, 2500000, 5000000, 65000000))+
+        scale_fill_manual(values=c("#1B9E77","#7570B3"))+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 12, face = "bold", hjust = 0.5),plot.margin = unit(c(2, 2, 2, 2), "cm"))
+
+      ply2 <- ggplotly(p2, tooltip = c("text"))
+
+      plot <- subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
+        layout(xaxis = list(title = "Loss reduction", titlefont = list(size = 12)),
+               xaxis2 = list(title="Usage improvement", titlefont = list(size = 12)),
+               yaxis = list(title = ""), yaxis2 = list(title = ""))
+
+      plot
+    })
+    #------------------------------------------------------------------------------------
+    output$health_insecticide_wear <- renderPlotly({
+      df <- data() 
+      df <- df %>%
+        mutate(Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))))
+      
+      improvement <- c(0.1, 0.15, 0.2, 0.25, 0.3)
+      improvement_insecticide_df <- data.frame(improvement)%>%
+        mutate(LLIN_loss = df[1,3]*(1-(df[9,2]+df[10,2]+(1-improvement)*df[11,2]+df[12,2])),
+               deaths_prevented = round((LLIN_loss-df[17,3])*2/1000*5.6,0),
+               cases_prevented = round((LLIN_loss-df[17,3])*2/1000*128,0),
+               improvement = as.character(improvement),
+        ) %>% gather(variable, amount, c(deaths_prevented,cases_prevented), -improvement, -LLIN_loss) %>%
+        mutate(variable = case_when(variable == "deaths_prevented" ~ "Children deceased prevented",
+                                    variable == "cases_prevented" ~ "Malaria cases prevented"))
+      
+      improvement_insecticide_df$lab <- "Health impact from \n LLIN bioefficacy improvement"
+      #-----------------------------------------------------------------
+      improvement_wear_df <- data.frame(improvement)%>%
+        mutate(LLIN_usage = df[1,3]*(1-(df[9,2]+df[10,2]+df[11,2]+(1-improvement)*df[12,2])),
+               deaths_prevented = round((LLIN_usage-df[17,3])*2/1000*5.6,0),
+               cases_prevented = round((LLIN_usage-df[17,3])*2/1000*128,0),
+               improvement = as.character(improvement)
+        )%>%
+        gather(variable, amount, c(deaths_prevented,cases_prevented), -improvement, -LLIN_usage) %>%
+        mutate(variable = case_when(variable == "deaths_prevented" ~ "Children deceased prevented",
+                                    variable == "cases_prevented" ~ "Malaria cases prevented"))
+      
+      improvement_wear_df$lab <- "Health impact from \n LLIN wear and tear improvement"
+      
+      p1 <- ggplot(improvement_insecticide_df, aes(x = improvement, y = amount,  fill = variable,
+                                            text = paste("Health impact:", prettyNum(amount, big.mark=",")))) +
+        geom_bar(stat = "identity", position = "dodge")+
+        guides(fill = FALSE)+
+        facet_wrap(~lab)+
+        scale_fill_manual(values=c("#A50026","#F46D43"))+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 500500), breaks = c(0,25000, 50000, 100000, 250000, 500000),
+                           labels = c(0,25000, 50000, 100000, 250000, 500000))+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 12, face = "bold", hjust = 0.5), plot.margin = unit(c(2, 2, 2, 2), "cm"))
+      
+      ply1 <- ggplotly(p1, tooltip = c("text"))
+      
+      p2 <- ggplot(improvement_wear_df, aes(x = improvement, y = amount,  fill = variable,
+                                             text = paste("Health impact: ", prettyNum(amount, big.mark=",")))) +
+        geom_bar(stat = "identity", position = "dodge")+
+        guides(fill = FALSE)+
+        facet_wrap(~lab)+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 500500), breaks = c(0,25000, 50000, 100000, 250000, 500000),
+                           labels = c(0,25000, 50000, 100000, 250000, 500000))+
+        scale_fill_manual(values=c("#A50026","#F46D43"))+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 12, face = "bold", hjust = 0.5),plot.margin = unit(c(2, 2, 2, 2), "cm"))
+      
+      ply2 <- ggplotly(p2, tooltip = c("text"))
+      
+      plot <- subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
+        layout(xaxis = list(title = "Bioefficacy improvement", titlefont = list(size = 12)),
+               xaxis2 = list(title="Wear and tear improvement", titlefont = list(size = 12)),
+               yaxis = list(title = ""), yaxis2 = list(title = ""))
+      
+      plot
+    })
+    
+    #-----------------------------------------------------------------------------------------
+    output$health_effectiveness_geo <- renderPlotly({
+      
+      df <- df %>%
+        mutate(Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))))
+      
+      improvement <- c(0.1, 0.15, 0.2, 0.25, 0.3)
+      improvement_effectiveness_df <- data.frame(improvement)%>%
+        mutate(LLIN_loss = df[1,3]*(1-(df[9,2]+df[10,2]+(1-improvement)*(df[11,2]+df[12,2]))),
+               deaths_prevented = round((LLIN_loss-df[17,3])*2/1000*5.6,0),
+               cases_prevented = round((LLIN_loss-df[17,3])*2/1000*128,0),
+               improvement = as.character(improvement),
+        ) %>% gather(variable, amount, c(deaths_prevented,cases_prevented), -improvement, -LLIN_loss) %>%
+        mutate(variable = case_when(variable == "deaths_prevented" ~ "Children deceased prevented",
+                                    variable == "cases_prevented" ~ "Malaria cases prevented"))
+      
+      improvement_effectiveness_df$lab <- "Health impact from \n LLIN effectiveness improvement"
+      #-----------------------------------------------------------------------------------------
+
+      p1 <- ggplot(improvement_effectiveness_df, aes(x = improvement, y = amount,  fill = variable,
+                                                   text = paste("Health impact:", prettyNum(amount, big.mark=",")))) +
+        geom_bar(stat = "identity", position = "dodge")+
+        guides(fill = FALSE)+
+        facet_wrap(~lab)+ labs(x = "Effectiveness improvement")+
+        scale_fill_manual(values=c("#67A9CF","#014636"))+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 1000200), breaks = c(0,25000, 50000, 750000, 1000000),
+                           labels = c(0,25000, 50000, 750000, 1000000))+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
+              text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
+              plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
+              strip.text = element_text(size = 12, face = "bold", hjust = 0.5), plot.margin = unit(c(2, 2, 2, 2), "cm"))
+      
+      ply1 <- ggplotly(p1, tooltip = c("text"))
+      
+      ply1
+    })
+
+ }
 
 # Create Shiny app ----
 shinyApp(ui, server)
