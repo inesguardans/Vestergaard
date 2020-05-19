@@ -5,9 +5,9 @@ account: inesguardans
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2071910
-bundleId: 3146637
+bundleId: 3166281
 url: https://inesguardans.shinyapps.io/Vestergaard/
-when: 1589457786.16464
+when: 1589893717.78821
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: B_Plan_1.xlsx|examples.R|global.R|trial/app.R|trial/B_plan_data.xlsx

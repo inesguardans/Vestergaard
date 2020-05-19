@@ -184,6 +184,9 @@ ui <- fluidPage(
                          br(),
                          h3("Health impact"),
                          br(),
+                         htmlOutput("cochrane"),
+                         br(),
+                         uiOutput("formulas"),
                          br(),
                          br(),
                          plotlyOutput("health_loss_usage"),
@@ -549,13 +552,7 @@ server <- function(input, output) {
                   input$insecticide_efficacy,
                   input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
                   input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement)
-      
-      # labels <- c(input$distrib, input$price, input$LLIN_lost, input$not_used, 
-      #             input$insecticide_efficacy,
-      #             input$wear_tear, input$loss_reduction, input$usage_improvement, input$bioefficacy_improvement,
-      #             input$wear_tear_improvement, input$effectiveness_improvement, input$coverage_improvement
-      #              )
-      
+
       names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
                  "Insecticide efficacy", "Wear & tear", "Loss reduction %", "Usage improvement %",
                  "Bioefficacy improvement %", "Wear and tear improvement", "Effectiveness improvement %", "Regional coverage improvement %")
@@ -939,12 +936,21 @@ server <- function(input, output) {
     })
     
     #################### HEALTH IMPACT ######################################
-    # output$summary3 <- renderPrint({
-    #   df <- data()
-    # 
-    # str(df)
-    #  })
-    # 
+    output$cochrane <- renderUI({
+      str1 <- "For every 1,000 children protected with ITNs, 5.6 lives are saved."
+      str2 <- "For every 1,000 people protected with ITNs, 128 malaria cases are prevented."
+      source <- "Source: Pryce et al (2018) Cochrane Database"
+      HTML(paste(str1, str2,source, sep = '<br/>'))
+    })
+    
+    
+    output$formulas <- renderUI({
+      withMathJax(
+        helpText('Number of children deaths prevented: $$(ActualLlinEffectivelyUsed - LlinEffectivelyUsedWithImprovement)*2/1000*5.6$$'),
+        helpText('Number of malaria cases prevented: $$(ActualLlinEffectivelyUsed - LlinEffectivelyUsedWithImprovement)*2/1000*128$$')
+      )
+    })
+
 
     output$health_loss_usage <- renderPlotly({
       df <- data() 
@@ -981,8 +987,8 @@ server <- function(input, output) {
         guides(fill = FALSE)+
         facet_wrap(~lab)+
         scale_fill_manual(values=c("#1B9E77","#7570B3"))+
-        scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 500000, 1000000, 2500000, 5000000, 6500000),
-                           labels = c(0,250000, 500000, 1000000, 2500000, 5000000, 65000000))+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 1000000, 2500000, 5000000, 6500000),
+                           labels = formatC(as.numeric(c(0,250000, 1000000, 2500000, 5000000, 65000000)), format="f", digits=0, big.mark=","))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
@@ -996,8 +1002,8 @@ server <- function(input, output) {
         geom_bar(stat = "identity", position = "dodge")+
         guides(fill = FALSE)+
         facet_wrap(~lab)+
-        scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 500000, 1000000, 2500000, 5000000, 6500000),
-                           labels = c(0,250000, 500000, 1000000, 2500000, 5000000, 65000000))+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 1000000, 2500000, 5000000, 6500000),
+                           labels = formatC(as.numeric(c(0,250000, 1000000, 2500000, 5000000, 65000000)), format="f", digits=0, big.mark=","))+
         scale_fill_manual(values=c("#1B9E77","#7570B3"))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
@@ -1051,7 +1057,7 @@ server <- function(input, output) {
         facet_wrap(~lab)+
         scale_fill_manual(values=c("#A50026","#F46D43"))+
         scale_y_continuous(expand = c(0, 0),limits = c(0, 500500), breaks = c(0,25000, 50000, 100000, 250000, 500000),
-                           labels = c(0,25000, 50000, 100000, 250000, 500000))+
+                           labels = formatC(as.numeric(c(0,25000, 50000, 100000, 250000, 500000)), format="f", digits=0, big.mark=","))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
@@ -1066,7 +1072,7 @@ server <- function(input, output) {
         guides(fill = FALSE)+
         facet_wrap(~lab)+
         scale_y_continuous(expand = c(0, 0),limits = c(0, 500500), breaks = c(0,25000, 50000, 100000, 250000, 500000),
-                           labels = c(0,25000, 50000, 100000, 250000, 500000))+
+                           labels = formatC(as.numeric(c(0,25000, 50000, 100000, 250000, 500000)), format="f", digits=0, big.mark=","))+
         scale_fill_manual(values=c("#A50026","#F46D43"))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
@@ -1086,7 +1092,7 @@ server <- function(input, output) {
     
     #-----------------------------------------------------------------------------------------
     output$health_effectiveness_geo <- renderPlotly({
-      
+      df <- data() 
       df <- df %>%
         mutate(Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))))
       
@@ -1109,8 +1115,8 @@ server <- function(input, output) {
         guides(fill = FALSE)+
         facet_wrap(~lab)+ labs(x = "Effectiveness improvement")+
         scale_fill_manual(values=c("#67A9CF","#014636"))+
-        scale_y_continuous(expand = c(0, 0),limits = c(0, 1000200), breaks = c(0,25000, 50000, 750000, 1000000),
-                           labels = c(0,25000, 50000, 750000, 1000000))+
+        scale_y_continuous(expand = c(0, 0),limits = c(0, 1000200), breaks = c(0,100000, 250000, 500000, 750000, 1000000),
+                           labels = formatC(as.numeric(c(0, 100000, 250000, 500000, 750000, 1000000)), format="f", digits=0, big.mark=","))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black", size = 1),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45),  axis.text.y = element_text(size = 8),
