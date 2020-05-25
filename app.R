@@ -613,7 +613,7 @@ server <- function(input, output) {
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
       
-      plot <- subplot(ply1, ply2, shareX=TRUE, titleX = TRUE, margin = 0.07)
+      plot <- plotly::subplot(ply1, ply2, shareX=TRUE, titleX = TRUE, margin = 0.07)
    
       plot
       
@@ -653,7 +653,7 @@ server <- function(input, output) {
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
       
-      plot <- subplot(ply1, ply2, titleX = TRUE, margin = 0.07)
+      plot <- plotly::subplot(ply1, ply2, titleX = TRUE, margin = 0.07)
   
       plot
       
@@ -691,7 +691,7 @@ server <- function(input, output) {
       df1 <- df[21:22,]
       df1$Lost_value <- "After loss reduction"
       
-      total <- df[8,]
+      total <- df[19,] %>% mutate(Variable = case_when(Variable == "Lost value (all nets)" ~ "Initial lost value (all nets)"))
       total$Lost_value <- "Total lost value"
       
       df3 <- rbind(df1, total)
@@ -705,7 +705,7 @@ server <- function(input, output) {
       
 
       
-      p1 <- ggplot(df3, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%"))) +
+      p1 <- ggplot(df3, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%", "\n Amount: ", Amount))) +
         geom_bar(stat = "identity", position = "dodge")+
         guides(fill = FALSE)+
         facet_wrap(~lab)+
@@ -720,7 +720,7 @@ server <- function(input, output) {
       
       ply1 <- ggplotly(p1, tooltip = c("text"))
       
-      p2 <- ggplot(df4, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%"))) +
+      p2 <- ggplot(df4, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%", "\n Amount: ", Amount))) +
         geom_bar(stat = "identity", position = "dodge")+
         guides(fill = FALSE)+
         facet_wrap(~lab)+
@@ -733,7 +733,7 @@ server <- function(input, output) {
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
-      plot <- subplot(ply1, ply2, titleY = TRUE, margin = 0.07)
+      plot <- plotly::subplot(ply1, ply2, titleY = TRUE, margin = 0.07)
       
       plot
     }) 
@@ -747,7 +747,7 @@ server <- function(input, output) {
       df1 <- df[31:32,]
       df1$Lost_value <- "After bioefficacy improvement"
       
-      total <- df[8,]
+      total <- df[19,] %>% mutate(Variable = case_when(Variable == "Lost value (all nets)" ~ "Initial lost value (all nets)"))
       total$Lost_value <- "Total lost value"
       df3 <- rbind(df1, total)
       df3$lab <- paste("Reduce insecticide efficacy by:", improve_insecticide, "%")
@@ -759,7 +759,7 @@ server <- function(input, output) {
       df4 <- rbind(df2, total)
       df4$lab <- paste("Reduce wear and tear by:", reduce_wear, "%")
       
-      p1 <- ggplot(df3, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%"))) +
+      p1 <- ggplot(df3, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%", "\n Amount: ", Amount))) +
         geom_bar(stat = "identity", position = "dodge")+
         facet_wrap(~lab)+
         guides(fill = FALSE)+
@@ -773,7 +773,7 @@ server <- function(input, output) {
       
       ply1 <- ggplotly(p1, tooltip = c("text"))
       
-      p2 <- ggplot(df4, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%"))) +
+      p2 <- ggplot(df4, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%", "\n Amount: ", Amount))) +
         geom_bar(stat = "identity", position = "dodge")+
         facet_wrap(~lab)+
         guides(fill = FALSE)+
@@ -787,7 +787,7 @@ server <- function(input, output) {
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
-      plot <- subplot(ply1, ply2, titleY = TRUE, margin = 0.07)
+      plot <- plotly::subplot(ply1, ply2, titleY = TRUE, margin = 0.07)
       
       plot
     })
@@ -802,7 +802,7 @@ server <- function(input, output) {
       df1 <- df[41:42,]
       df1$Lost_value <- "After effectiveness improvement"
       
-      total <- df[8,]
+      total <- df[19,] %>% mutate(Variable = case_when(Variable == "Lost value (all nets)" ~ "Initial lost value (all nets)"))
       total$Lost_value <- "Total lost value"
       df3 <- rbind(df1, total)%>%
         mutate(Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))))
@@ -817,12 +817,12 @@ server <- function(input, output) {
       
 
       
-      p1 <- ggplot(df3, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%"))) +
+      p1 <- ggplot(df3, aes(x = Variable, y = Amount,  fill = Lost_value, text = paste("Percentage:", Percentage*100, "%", "\n Amount: ", mycurrency(Amount))))+
         geom_bar(stat = "identity", position = "dodge")+
         facet_wrap(~lab)+
         guides(fill = FALSE)+
-        labs(y = "Value")+
-        scale_y_continuous(labels = dollar_format())+
+        labs(y = "")+
+        scale_y_continuous(limits = c(0, max(df3$Amount)), breaks =c(303417556, 468751216), labels = mycurrency(c(303417556, 468751216)))+
         scale_fill_manual(values=c("#4393C3" ,"#FBB4AE"))+        
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
@@ -986,6 +986,7 @@ server <- function(input, output) {
         geom_bar(stat = "identity", position = "dodge")+
         guides(fill = FALSE)+
         facet_wrap(~lab)+
+        scale_x_discrete(labels = c("0.1" = "10%", "0.15" = "15%", "0.2" = "20%", "0.25" = "25 %", "0.3" = "30 %"))+
         scale_fill_manual(values=c("#1B9E77","#7570B3"))+
         scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 1000000, 2500000, 5000000, 6500000),
                            labels = formatC(as.numeric(c(0,250000, 1000000, 2500000, 5000000, 65000000)), format="f", digits=0, big.mark=","))+
@@ -1002,6 +1003,8 @@ server <- function(input, output) {
         geom_bar(stat = "identity", position = "dodge")+
         guides(fill = FALSE)+
         facet_wrap(~lab)+
+        scale_x_discrete(labels = c("0.1" = "10%", "0.15" = "15%", "0.2" = "20%", "0.25" = "25 %", "0.3" = "30 %"))+
+        
         scale_y_continuous(expand = c(0, 0),limits = c(0, 7000000), breaks = c(0,250000, 1000000, 2500000, 5000000, 6500000),
                            labels = formatC(as.numeric(c(0,250000, 1000000, 2500000, 5000000, 65000000)), format="f", digits=0, big.mark=","))+
         scale_fill_manual(values=c("#1B9E77","#7570B3"))+
@@ -1013,7 +1016,7 @@ server <- function(input, output) {
 
       ply2 <- ggplotly(p2, tooltip = c("text"))
 
-      plot <- subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
+      plot <- plotly::subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
         layout(xaxis = list(title = "Loss reduction", titlefont = list(size = 12)),
                xaxis2 = list(title="Usage improvement", titlefont = list(size = 12)),
                yaxis = list(title = ""), yaxis2 = list(title = ""))
@@ -1056,6 +1059,8 @@ server <- function(input, output) {
         guides(fill = FALSE)+
         facet_wrap(~lab)+
         scale_fill_manual(values=c("#A50026","#F46D43"))+
+        scale_x_discrete(labels = c("0.1" = "10%", "0.15" = "15%", "0.2" = "20%", "0.25" = "25 %", "0.3" = "30 %"))+
+        
         scale_y_continuous(expand = c(0, 0),limits = c(0, 500500), breaks = c(0,25000, 50000, 100000, 250000, 500000),
                            labels = formatC(as.numeric(c(0,25000, 50000, 100000, 250000, 500000)), format="f", digits=0, big.mark=","))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -1071,6 +1076,7 @@ server <- function(input, output) {
         geom_bar(stat = "identity", position = "dodge")+
         guides(fill = FALSE)+
         facet_wrap(~lab)+
+        scale_x_discrete(labels = c("0.1" = "10%", "0.15" = "15%", "0.2" = "20%", "0.25" = "25 %", "0.3" = "30 %"))+
         scale_y_continuous(expand = c(0, 0),limits = c(0, 500500), breaks = c(0,25000, 50000, 100000, 250000, 500000),
                            labels = formatC(as.numeric(c(0,25000, 50000, 100000, 250000, 500000)), format="f", digits=0, big.mark=","))+
         scale_fill_manual(values=c("#A50026","#F46D43"))+
@@ -1082,7 +1088,7 @@ server <- function(input, output) {
       
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
-      plot <- subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
+      plot <- plotly::subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
         layout(xaxis = list(title = "Bioefficacy improvement", titlefont = list(size = 12)),
                xaxis2 = list(title="Wear and tear improvement", titlefont = list(size = 12)),
                yaxis = list(title = ""), yaxis2 = list(title = ""))
@@ -1113,8 +1119,9 @@ server <- function(input, output) {
                                                    text = paste("Health impact:", prettyNum(amount, big.mark=",")))) +
         geom_bar(stat = "identity", position = "dodge")+
         guides(fill = FALSE)+
-        facet_wrap(~lab)+ labs(x = "Effectiveness improvement")+
+        facet_wrap(~lab)+ labs(x = "", y = "")+
         scale_fill_manual(values=c("#67A9CF","#014636"))+
+        scale_x_discrete(labels = c("0.1" = "10%", "0.15" = "15%", "0.2" = "20%", "0.25" = "25 %", "0.3" = "30 %"))+
         scale_y_continuous(expand = c(0, 0),limits = c(0, 1000200), breaks = c(0,100000, 250000, 500000, 750000, 1000000),
                            labels = formatC(as.numeric(c(0, 100000, 250000, 500000, 750000, 1000000)), format="f", digits=0, big.mark=","))+
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -1123,7 +1130,9 @@ server <- function(input, output) {
               plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10), strip.background =element_rect(fill="white"),
               strip.text = element_text(size = 12, face = "bold", hjust = 0.5), plot.margin = unit(c(2, 2, 2, 2), "cm"))
       
-      ply1 <- ggplotly(p1, tooltip = c("text"))
+      ply1 <- ggplotly(p1, tooltip = c("text")) %>%
+        layout(xaxis = list(title = "Effectiveness improvement", titlefont = list(size = 12)),
+               yaxis = list(title = ""))
       
       ply1
     })
