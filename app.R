@@ -605,7 +605,7 @@ server <- function(input, output) {
                            limits = c(0,100))+
         scale_fill_manual(values =  c("#C7E9C0" ,"#74C476" ,"#41AB5D"))+
         labs(x = "Percentage of total budget", y = "")+
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.title = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 8),
               plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10),
@@ -619,7 +619,7 @@ server <- function(input, output) {
         #guides(fill = FALSE)+
         scale_fill_manual(values = c("#DADAEB", "#BCBDDC" ,"#9E9AC8"))+
         ggtitle("Global Market: 211,297,998 LLINs")+ labs(x = "Budgets", y = "")+
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.title = element_blank(),
               panel.background = element_blank(), axis.line = element_line(colour = "black"),
               text = element_text(size = 10), axis.text.x = element_text(angle = 45), axis.text.y = element_text(size = 8),
               plot.title = element_text(size = 12, hjust = 0.5), axis.title.x = element_text(size = 10),
@@ -918,7 +918,7 @@ server <- function(input, output) {
       r3 <- df[27,]
       r4 <- df[32,]
       r5 <- df[37,]
-      r6 <- df[41,]
+      r6 <- df[42,]
       r7 <- df[46,]
       
       df1 <- rbind(r1, r2, r3, r4, r5, r6, r7)
