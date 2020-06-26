@@ -10,6 +10,7 @@ library(ggplot2)
 library(RColorBrewer)
 library(gridExtra)
 library(foreign)
+library(shinycssloaders)
 
 b_plan<- read_excel("B_plan_data.xlsx", )%>%
     mutate(Amount = round(Amount, 0)
@@ -21,7 +22,7 @@ CEO_price <- 2.58
 procurement_price <- 2.74
 distribution_price <- 3.98
 
-PMI_distrib <- 0.29
+PMI_distrib <- 0.30
 GF <- 0.15
 AMF <- 0.04
 
@@ -56,7 +57,7 @@ ui <- fluidPage(
             
             # Input: Select a where the % of cost of distrib of total budget comes from ----
             selectInput("distrib", "Cost of distribution %",
-                        choices = c("PMI; 29%", "GF; 15%", "AMF; 4%", "Other"),
+                        choices = c("PMI; 30%", "GF; 15%", "AMF; 4%", "Other"),
                         selected = "PMI; 29%"),
             
             uiOutput("other_distrib"),
@@ -103,11 +104,11 @@ ui <- fluidPage(
             
             numericInput("usage_improvement", "Usage improvement by %:", 20),
             
-            numericInput("bioefficacy_improvement", "Bioefficacy improvement by %:", 5),
+            numericInput("bioefficacy_improvement", "Insecticide efficacy improvement by %:", 5),
             
             numericInput("wear_tear_improvement", "Wear and tear improvement by %:", 5),
             
-            numericInput("effectiveness_improvement", "Effectiveness improvement by %:", 10),
+            numericInput("effectiveness_improvement", HTML("Total physical degradation improvement by % <br> (insecticide efficacy + wear and tear):"), 10),
             
             numericInput("coverage_improvement", "Regional coverage improvement by %:", 5),
             
@@ -144,7 +145,7 @@ ui <- fluidPage(
                          br(),
                          br(),
                          br(),
-                         plotlyOutput("parameters"),
+                         plotlyOutput("parameters")%>% withSpinner(color="#0dc5c1"),
                          br(),
                          br(),
                          br(),
@@ -158,27 +159,27 @@ ui <- fluidPage(
                          br(),
                          br(),
                          br(),
-                         plotlyOutput("loss_usage"),
+                         plotlyOutput("loss_usage") %>% withSpinner(color="#0dc5c1"),
                          br(),
                          br(),
                          br(),
                          br(),
-                         plotlyOutput("insecticide_wear"),
+                         plotlyOutput("insecticide_wear")%>% withSpinner(color="#0dc5c1"),
                          br(),
                          br(),
                          br(),
                          br(),
-                         plotlyOutput("effectiveness_geo"),
+                         plotlyOutput("effectiveness_geo")%>% withSpinner(color="#0dc5c1"),
                          br(),
                          br(),
                          br(),
                          br(),
-                         plotlyOutput("value"),
+                         plotlyOutput("value")%>% withSpinner(color="#0dc5c1"),
                          br(),
                          br(),
                          br(),
                          br(),
-                         plotlyOutput("differences"),
+                         plotlyOutput("differences")%>% withSpinner(color="#0dc5c1"),
                          br(),
                          br(),
                          br(),
@@ -288,7 +289,7 @@ server <- function(input, output) {
         distribInput <- reactive({
             if(input$distrib != "Other"){
                 switch(input$distrib,
-                       "PMI; 29%" = PMI_distrib,
+                       "PMI; 30%" = PMI_distrib,
                        "GF; 15%" = GF,
                        "AMF; 40%" = AMF)
                 
@@ -364,7 +365,8 @@ server <- function(input, output) {
        
        names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
                   "Insecticide efficacy", "Wear & tear", "Loss reduction %", "Usage improvement %",
-                  "Bioefficacy improvement %", "Wear and tear improvement", "Effectiveness improvement %", "Regional coverage improvement %")
+                  "Insecticide efficacy improvement %", "Wear and tear improvement", 
+                  "Total physical degradation improvement %", "Regional coverage improvement %")
        
        summary <- matrix(choice, nrow = 1, ncol = 12)
        #summary <- rbind(summary, choice)
@@ -570,7 +572,8 @@ server <- function(input, output) {
 
       names <- c("Cost distrib.", "Price", "LLIN lost","Not used",
                  "Insecticide efficacy", "Wear & tear", "Loss reduction %", "Usage improvement %",
-                 "Bioefficacy improvement %", "Wear and tear improvement", "Effectiveness improvement %", "Regional coverage improvement %")
+                 "Insecticide efficacy improvement %", "Wear and tear improvement", 
+                 "Total physicial degradation improvement %", "Regional coverage improvement %")
       
       summary <- matrix(choice, nrow = 1, ncol = 12)
       #summary <- rbind(summary, choice)
@@ -598,7 +601,8 @@ server <- function(input, output) {
       
 
       p1 <- df %>%
-        ggplot(aes(x = Variable, y = Percentage*100, fill=Source,  text = paste("Percentage:", Percentage*100, "%"))) +
+        ggplot(aes(x = Variable, y = Percentage*100, fill=Source,  text = paste("Percentage:", Percentage*100, "% \n",
+                                                                                "Source:", Source))) +
         geom_bar(stat = "identity", position = position_dodge(), width = 0.6)+
         #guides(fill = FALSE)+
         scale_y_continuous(expand = c(0,0),
@@ -760,7 +764,7 @@ server <- function(input, output) {
       improve_insecticide <- df[30,2]*100
       reduce_wear <- df[35,2]*100
       df1 <- df[31:32,]
-      df1$Lost_value <- "After bioefficacy improvement"
+      df1$Lost_value <- "After insecticide efficacy improvement"
       
       total <- df[19,] %>% mutate(Variable = case_when(Variable == "Lost value (all nets)" ~ "Initial lost value (all nets)"))
       total$Lost_value <- "Lost value withouth improvements"
@@ -815,13 +819,13 @@ server <- function(input, output) {
       coverage_need <- df[45,2]*100
       
       df1 <- df[41:42,]
-      df1$Lost_value <- "After effectiveness improvement"
+      df1$Lost_value <- "After physical degradation improvement"
       
       total <- df[19,] %>% mutate(Variable = case_when(Variable == "Lost value (all nets)" ~ "Initial lost value (all nets)"))
       total$Lost_value <- "Lost value withouth improvements"
       df3 <- rbind(df1, total)%>%
         mutate(Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))))
-      df3$lab <- paste("Improve effectiveness by:", improve_effectiveness, "% \n (bioefficacy + wear and tear)")
+      df3$lab <- paste("Improve physical degradation by:", improve_effectiveness, "% \n (insectice efficacy + wear and tear)")
       #-----------------------------------------------------------------------------------------
       # df2 <- df[36,]
       # df2$Lost_value <- "After regional coverage improvement"
@@ -883,12 +887,12 @@ server <- function(input, output) {
 
       df1 <- rbind(r1, r2, r3, r4, r5, r6) %>%
         as.data.frame() 
-      df1$lab <- "Total degradation lost value ($)"
+      df1$lab <- "Lost value with parameter improvement ($)"
       
       df1 <- df1 %>%
         mutate(axis = c("Baseline lost value (all nets)", "Lost value with loss reduction",
-                        "Lost value with usage improvement", "Lost value with bioefficacy improvement", "Lost value with wear and tear improvement",
-                        "Lost value with effectiveness improvement"),
+                        HTML("Lost value with <br> usage improvement"), HTML("Lost value with <br> insecticide efficacy improvement"), HTML("Lost value with <br> wear and tear improvement"),
+                        HTML("Lost value with <br> physical degradation improvement")),
                Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))))
               
       p1 <- df1 %>%
@@ -925,8 +929,8 @@ server <- function(input, output) {
       
       df1 <- df1 %>%
         mutate(axis = c("Baseline lost value (all nets)", "Gain from loss reduction",
-                        "Gain from usage improvement", "Gain from bioefficacy improvement", "Gain from wear and tear improvement",
-                        "Gain from effectiveness improvement", "Gain from reduction in coverage need"),
+                        "Gain from usage improvement", HTML("Gain from insecticide <br> efficacy improvement"), HTML("Gain from wear <br> and tear improvement"),
+                        HTML("Gain from physical <br> degradation improvement"), HTML("Gain from reduction <br> in coverage need")),
                Amount = as.numeric(gsub(",", "", gsub("\\$", "", Amount))),
                gain = Amount[1]-Amount)
       
@@ -1122,7 +1126,7 @@ server <- function(input, output) {
         ) %>% gather(variable, amount, c(cases_prevented), -improvement, -LLIN_loss) %>%
         mutate(variable = case_when(variable == "cases_prevented" ~ "Malaria cases prevented"))
       
-      improvement_insecticide_df$lab <- "Health impact from \n LLIN bioefficacy improvement"
+      improvement_insecticide_df$lab <- "Health impact from \n LLIN insecticide efficacy improvement"
       #-----------------------------------------------------------------
       improvement_wear_df <- data.frame(improvement)%>%
         mutate(LLIN_usage = df[1,3]*(1-(df[9,2]+df[10,2]+df[11,2]+(1-improvement)*df[12,2])),
@@ -1168,7 +1172,7 @@ server <- function(input, output) {
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
       plot <- plotly::subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
-        layout(xaxis = list(title = "Bioefficacy improvement", titlefont = list(size = 12)),
+        layout(xaxis = list(title = "Insecticide efficacy improvement", titlefont = list(size = 12)),
                xaxis2 = list(title="Wear and tear improvement", titlefont = list(size = 12)),
                yaxis = list(title = ""), yaxis2 = list(title = ""), title = "Malaria cases prevented")
       
@@ -1191,7 +1195,7 @@ server <- function(input, output) {
         ) %>% gather(variable, amount, c(deaths_prevented), -improvement, -LLIN_loss) %>%
         mutate(variable = case_when(variable == "deaths_prevented" ~ "Children deceased prevented"))
       
-      improvement_insecticide_df$lab <- "Health impact from \n LLIN bioefficacy improvement"
+      improvement_insecticide_df$lab <- "Health impact from \n LLIN insecticide efficacy improvement"
       #-----------------------------------------------------------------
       improvement_wear_df <- data.frame(improvement)%>%
         mutate(LLIN_usage = df[1,3]*(1-(df[9,2]+df[10,2]+df[11,2]+(1-improvement)*df[12,2])),
@@ -1237,7 +1241,7 @@ server <- function(input, output) {
       ply2 <- ggplotly(p2, tooltip = c("text"))
       
       plot <- plotly::subplot(style(ply1, showlegend=F), ply2, margin = 0.07, titleX = TRUE, titleY = TRUE) %>%
-        layout(xaxis = list(title = "Bioefficacy improvement", titlefont = list(size = 12)),
+        layout(xaxis = list(title = "Insecticide efficacy improvement", titlefont = list(size = 12)),
                xaxis2 = list(title="Wear and tear improvement", titlefont = list(size = 12)),
                yaxis = list(title = ""), yaxis2 = list(title = ""), title = "Children deaths prevented")
       
@@ -1258,7 +1262,7 @@ server <- function(input, output) {
         ) %>% gather(variable, amount, c(cases_prevented), -improvement, -LLIN_loss) %>%
         mutate(variable = case_when(variable == "cases_prevented" ~ "Malaria cases prevented"))
       
-      improvement_effectiveness_df$lab <- "Health impact from \n LLIN effectiveness improvement"
+      improvement_effectiveness_df$lab <- "Health impact from \n LLIN total physical degradation improvement"
       #-----------------------------------------------------------------------------------------
 
       p1 <- ggplot(improvement_effectiveness_df, aes(x = improvement, y = amount,  
@@ -1276,7 +1280,7 @@ server <- function(input, output) {
               strip.text = element_text(size = 12, face = "bold", hjust = 0.5), plot.margin = unit(c(2, 2, 2, 2), "cm"))
       
       ply1 <- ggplotly(p1, tooltip = c("text")) %>%
-        layout(xaxis = list(title = "Effectiveness improvement", titlefont = list(size = 12)),
+        layout(xaxis = list(title = "Total physical degradation improvement", titlefont = list(size = 12)),
                yaxis = list(title = ""), title = "Malaria cases prevented")
       
       ply1
@@ -1297,7 +1301,7 @@ server <- function(input, output) {
         ) %>% gather(variable, amount, c(deaths_prevented), -improvement, -LLIN_loss) %>%
         mutate(variable = case_when(variable == "deaths_prevented" ~ "Children deceased prevented"))
       
-      improvement_effectiveness_df$lab <- "Health impact from \n LLIN effectiveness improvement"
+      improvement_effectiveness_df$lab <- "Health impact from \n LLIN total physical degradation improvement"
       #-----------------------------------------------------------------------------------------
       
       p1 <- ggplot(improvement_effectiveness_df, aes(x = improvement, y = amount, 
@@ -1315,7 +1319,7 @@ server <- function(input, output) {
               strip.text = element_text(size = 12, face = "bold", hjust = 0.5), plot.margin = unit(c(2, 2, 2, 2), "cm"))
       
       ply1 <- ggplotly(p1, tooltip = c("text")) %>%
-        layout(xaxis = list(title = "Effectiveness improvement", titlefont = list(size = 12)),
+        layout(xaxis = list(title = "Total physical degradation improvement", titlefont = list(size = 12)),
                yaxis = list(title = ""), title = "Children deaths prevented")
       
       ply1
