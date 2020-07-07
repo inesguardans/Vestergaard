@@ -18,7 +18,7 @@ b_plan<- read_excel("B_plan_data.xlsx", )%>%
     as.data.frame()
 
 
-CEO_price <- 2.58
+CEO_price <- 2.02
 procurement_price <- 2.74
 distribution_price <- 3.98
 
@@ -65,7 +65,7 @@ ui <- fluidPage(
             #--------------------------------------------
             
             selectInput("price", "Price",
-                        choices = c("Internal pricing; 2.58", "MOP procurement; 2.74", 
+                        choices = c("Internal pricing; 2.02", "MOP procurement; 2.74", 
                                     "MOP procurement and distribution; 3.98"),
                         selected = "CEO; 2.58"),
             
@@ -302,7 +302,7 @@ server <- function(input, output) {
         
         priceInput <- reactive({
             switch(input$price,
-                   "Internal pricing; 2.58" = CEO_price,
+                   "Internal pricing; 2.02" = CEO_price,
                    "MOP procurement; 2.74" = procurement_price,
                    "MOP procurement and distribution; 3.98" = distribution_price)
         })
